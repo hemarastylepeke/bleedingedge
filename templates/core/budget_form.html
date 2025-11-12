@@ -1,0 +1,254 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ title }} - Pantry Pilot{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8">
+    <div class="container mx-auto px-4 max-w-2xl">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-green-500 to-blue-500 px-8 py-6">
+                <h1 class="text-2xl md:text-3xl font-bold text-white">{{ title }}</h1>
+                <p class="text-green-600 font-medium mt-2">Set up your budget parameters</p>
+            </div>
+
+            <!-- Form -->
+            <div class="p-8">
+                <form method="post" class="space-y-8">
+                    {% csrf_token %}
+                    
+                    <!-- Amount and Currency -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Amount -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Budget Amount *</label>
+                            {{ form.amount }}
+                            {% if form.amount.errors %}
+                                <div class="text-red-500 text-sm mt-2">{{ form.amount.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Currency -->
+                        <div class="relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Currency *</label>
+                            {{ form.currency }}
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 mt-7">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                            {% if form.currency.errors %}
+                                <div class="text-red-500 text-sm mt-2">{{ form.currency.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Period and Active Status -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Period -->
+                        <div class="relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Budget Period *</label>
+                            {{ form.period }}
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 mt-7">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                            {% if form.period.errors %}
+                                <div class="text-red-500 text-sm mt-2">{{ form.period.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Active Status -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Status</label>
+                            <div class="mt-2">
+                                <label class="inline-flex items-center space-x-4 p-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer">
+                                    {{ form.active }}
+                                    <span class="text-gray-700 font-medium">Set as active budget</span>
+                                </label>
+                            </div>
+                            {% if form.active.errors %}
+                                <div class="text-red-500 text-sm mt-2">{{ form.active.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Dates -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Start Date -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Start Date *</label>
+                            <div class="relative">
+                                {{ form.start_date }}
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none mt-7">
+                                  
+                                </div>
+                            </div>
+                            {% if form.start_date.errors %}
+                                <div class="text-red-500 text-sm mt-2">{{ form.start_date.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- End Date -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">End Date</label>
+                            <div class="relative">
+                                {{ form.end_date }}
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none mt-7">
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Leave empty for automatic calculation based on period</p>
+                            {% if form.end_date.errors %}
+                                <div class="text-red-500 text-sm mt-2">{{ form.end_date.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Help Text -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                        <h4 class="font-semibold text-blue-800 mb-3 flex items-center">
+                            <i class="fas fa-lightbulb mr-2"></i>
+                            Budget Tips:
+                        </h4>
+                        <ul class="text-sm text-blue-700 space-y-2">
+                            <li class="flex items-start">
+                                <i class="fas fa-circle text-xs mt-1 mr-2"></i>
+                                Weekly budgets automatically set end date to 7 days from start
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-circle text-xs mt-1 mr-2"></i>
+                                Monthly budgets automatically set end date to 30 days from start
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-circle text-xs mt-1 mr-2"></i>
+                                Only one budget can be active at a time
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-circle text-xs mt-1 mr-2"></i>
+                                Active budgets are used for spending tracking and alerts
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex flex-col sm:flex-row gap-6 pt-6 border-t border-gray-200">
+                        <a href="{% url 'budget_list' %}" class="bg-white hover:bg-gray-50 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center border border-gray-300 shadow-sm">
+                            <i class="fas fa-times mr-2"></i>
+                            Cancel
+                        </a>
+                        <button type="submit" class="bg-green-600 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center shadow-sm border border-green-500 sm:ml-auto transform hover:scale-105">
+                            <i class="fas fa-save mr-2"></i>
+                            {% if budget %}Update Budget{% else %}Create Budget{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Form input styling */
+input, select, textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background-color: white;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Custom select dropdown styling */
+select {
+    appearance: none;
+    background-image: none;
+    padding-right: 2.5rem;
+}
+
+/* Remove any inline background images from Django form */
+select {
+    background-image: none !important;
+}
+
+/* Checkbox styling */
+input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid #d1d5db;
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+    background-color: #10b981;
+    border-color: #10b981;
+}
+
+/* Error styling */
+.text-red-500 {
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+/* Section spacing improvements */
+.space-y-8 > * + * {
+    margin-top: 2rem;
+}
+
+.space-y-6 > * + * {
+    margin-top: 1.5rem;
+}
+
+/* Grid gap improvements */
+.gap-6 > * {
+    margin: 0;
+}
+
+/* Fix dropdown arrow positioning */
+.relative .absolute {
+    top: 50%;
+    transform: translateY(-50%);
+    margin-top: 0.75rem;
+}
+
+/* Add margin to form container to prevent inputs touching borders */
+.p-8 {
+    padding: 2rem;
+}
+
+/* Ensure inputs have proper spacing from container edges */
+.container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add today's date as default for start date if empty
+    const startDateField = document.querySelector('input[type="date"][name="start_date"]');
+    if (startDateField && !startDateField.value) {
+        const today = new Date().toISOString().split('T')[0];
+        startDateField.value = today;
+    }
+    
+    // Add error classes to form fields with errors
+    const errorFields = document.querySelectorAll('.text-red-500');
+    errorFields.forEach(errorList => {
+        const field = errorList.previousElementSibling;
+        if (field && (field.tagName === 'INPUT' || field.tagName === 'SELECT')) {
+            field.classList.add('border-red-300');
+        }
+    });
+});
+</script>
+{% endblock %}

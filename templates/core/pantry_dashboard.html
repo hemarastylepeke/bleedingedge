@@ -1,0 +1,382 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Pantry Dashboard - PantryChef{% endblock %}
+
+{% block content %}
+<div class="flex h-screen bg-gray-50">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white shadow-lg flex flex-col">
+        <!-- Logo -->
+        <!-- <div class="p-6">
+            <h1 class="text-2xl font-bold text-green-400">Pantry<span class="text-secondary">Chef</span></h1>
+        </div> -->
+
+        <!-- Navigation -->
+        <div class="flex-1 p-4">
+            <ul class="space-y-2 mt-2">
+                <li>
+                    <a href="{% url 'pantry_dashboard' %}" class="flex items-center p-3 text-gray-700 rounded-lg bg-green-50 border-l-4 border-primary">
+                        <i class="fas fa-home mr-3 text-primary"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'recipe_list' %}" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                        <i class="fas fa-utensils mr-3"></i>
+                        <span>Recipes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'add_pantry_item' %}" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                        <i class="fas fa-shopping-basket mr-3"></i>
+                        <span>Add Pantry Item</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'shopping_list_list' %}" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                        <i class="fas fa-list-alt mr-3"></i>
+                        <span>Shopping Lists</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'budget_list' %}" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                        <i class="fas fa-wallet mr-3"></i>
+                        <span>Budget</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'food_waste_analytics' %}" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                        <i class="fas fa-chart-pie mr-3"></i>
+                        <span>Food Waste Analytics</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- User Profile -->
+        <div class="p-4 border-t">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">
+                    {% if user.userprofile.profile_image %}
+                        <img src="{{ user.userprofile.profile_image.url }}" alt="Profile" class="w-10 h-10 rounded-full">
+                    {% else %}
+                        <i class="fas fa-user"></i>
+                    {% endif %}
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium">
+                        {% if user.userprofile.first_name %}
+                            {{ user.userprofile.first_name }} {{ user.userprofile.last_name }}
+                        {% else %}
+                            {{ user.email }}
+                        {% endif %}
+                    </p>
+                    <p class="text-xs text-gray-500">Member</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+        <!-- Header
+        <header class="bg-white shadow-sm p-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-gray-800">Dashboard Overview</h2>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input type="text" placeholder="Search pantry..." class="pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                    <a href="{% url 'create_recipe' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+                        <i class="fas fa-magic mr-2"></i>AI Recipe
+                    </a>
+                    <a href="{% url 'add_pantry_item' %}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
+                        <i class="fas fa-plus mr-2"></i>Add Item
+                    </a>
+                </div>
+            </div>
+        </header> -->
+
+        <!-- Dashboard Content -->
+        <div class="p-6">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow p-6 border-l-4 border-primary">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Pantry Items</p>
+                            <h3 class="text-2xl font-bold mt-2">{{ total_items }}</h3>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-lg">
+                            <i class="fas fa-egg text-primary text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-green-600 text-sm mt-4">
+                        <i class="fas fa-arrow-up mr-1"></i>{{ pantry_items.count }} active items
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow p-6 border-l-4 border-secondary">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Food Waste Saved</p>
+                            <h3 class="text-2xl font-bold mt-2">${{ waste_savings|default:"0" }}</h3>
+                        </div>
+                        <div class="bg-amber-100 p-3 rounded-lg">
+                            <i class="fas fa-dollar-sign text-secondary text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-amber-600 text-sm mt-4">
+                        <i class="fas fa-chart-line mr-1"></i>{{ waste_reduction_percentage|default:"0" }}% reduction
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow p-6 border-l-4 border-accent">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Recipes Created</p>
+                            <h3 class="text-2xl font-bold mt-2">{{ recipes_created|default:"0" }}</h3>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-lg">
+                            <i class="fas fa-book text-accent text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-blue-600 text-sm mt-4">
+                        <i class="fas fa-check mr-1"></i>{{ pantry_utilization|default:"0" }}% pantry used
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow p-6 border-l-4 border-purple-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Budget Status</p>
+                            <h3 class="text-2xl font-bold mt-2">
+                                {% if current_budget %}
+                                    ${{ current_budget.amount_spent|default:"0" }}/${{ current_budget.amount }}
+                                {% else %}
+                                    $0/$0
+                                {% endif %}
+                            </h3>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-lg">
+                            <i class="fas fa-wallet text-purple-500 text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-purple-600 text-sm mt-4">
+                        <i class="fas fa-exclamation-circle mr-1"></i>{{ budget_percentage|default:"0" }}% of budget
+                    </p>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Expiring Soon -->
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-semibold">Items Expiring Soon</h3>
+                            <a href="{% url 'pantry_list' %}" class="text-primary text-sm font-medium">View All</a>
+                        </div>
+                        <div class="space-y-4">
+                            {% for item in expiring_soon %}
+                            <div class="flex items-center p-4 border rounded-lg {% if item.days_until_expiry <= 1 %}border-red-200 bg-red-50{% elif item.days_until_expiry <= 3 %}border-amber-200 bg-amber-50{% else %}border-gray-200{% endif %}">
+                                <div class="{% if item.days_until_expiry <= 1 %}bg-red-100 text-red-500{% elif item.days_until_expiry <= 3 %}bg-amber-100 text-amber-500{% else %}bg-gray-100 text-gray-500{% endif %} p-3 rounded-lg mr-4">
+                                    <i class="fas {% if item.days_until_expiry <= 1 %}fa-exclamation-triangle{% else %}fa-clock{% endif %}"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-medium">{{ item.name }}</h4>
+                                    <p class="text-gray-500 text-sm">
+                                        Expires in {{ item.days_until_expiry }} days • {{ item.quantity }} {{ item.unit }}
+                                        {% if item.days_until_expiry <= 1 %}
+                                            <span class="text-red-600 font-semibold">(Tomorrow)</span>
+                                        {% elif item.days_until_expiry <= 3 %}
+                                            <span class="text-amber-600 font-semibold">({{ item.days_until_expiry }} days)</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'create_recipe' %}" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-800">Use Now</a>
+                                    <a href="{% url 'edit_pantry_item' item.id %}" class="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300">Edit</a>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-8 text-gray-500">
+                                <i class="fas fa-check-circle text-4xl text-green-400 mb-3"></i>
+                                <p>No items expiring soon! Great job managing your pantry.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Recent Consumption -->
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-semibold">Recent Consumption</h3>
+                            <a href="{% url 'shopping_list_list' %}" class="text-primary text-sm font-medium">View All</a>
+                        </div>
+                        <div class="space-y-4">
+                            {% for consumption in recent_consumption %}
+                            <div class="flex items-start">
+                                <div class="bg-green-100 p-2 rounded-lg mr-4">
+                                    <i class="fas fa-shopping-bag text-green-500"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium">Shopping List Completed</h4>
+                                    <p class="text-gray-500 text-sm">
+                                        {{ consumption.items_count }} items • ${{ consumption.total_cost|default:"0" }} • {{ consumption.date|timesince }} ago
+                                    </p>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-4 text-gray-500">
+                                <p>No recent shopping activity. Create your first shopping list!</p>
+                                <a href="{% url 'create_shopping_list' %}" class="text-primary text-sm mt-2 inline-block">Create Shopping List</a>
+                            </div>
+                            {% endfor %}
+                            
+                            <!-- Add welcome message if no activity -->
+                            {% if not recent_consumption %}
+                            <div class="flex items-start">
+                                <div class="bg-blue-100 p-2 rounded-lg mr-4">
+                                    <i class="fas fa-shopping-cart text-blue-500"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium">Welcome to PantryChef!</h4>
+                                    <p class="text-gray-500 text-sm">Create your first shopping list to get started</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <!-- Quick Actions -->
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <a href="{% url 'create_shopping_list' %}" class="bg-green-600 text-white p-3 rounded-lg flex flex-col items-center justify-center hover:bg-green-700 transition">
+                                <i class="fas fa-robot text-xl mb-2"></i>
+                                <span class="text-sm">AI Shopping</span>
+                            </a>
+                            <a href="{% url 'create_recipe' %}" class="bg-green-600 text-white p-3 rounded-lg flex flex-col items-center justify-center hover:bg-green-800 transition">
+                                <i class="fas fa-magic text-xl mb-2"></i>
+                                <span class="text-sm">AI Recipe</span>
+                            </a>
+                            <a href="{% url 'pantry_list' %}" class="bg-purple-500 text-white p-3 rounded-lg flex flex-col items-center justify-center hover:bg-purple-600 transition">
+                                <i class="fas fa-shopping-basket text-xl mb-2"></i>
+                                <span class="text-sm">View Pantry</span>
+                            </a>
+                            <a href="{% url 'budget_list' %}" class="bg-purple-500 text-white p-3 rounded-lg flex flex-col items-center justify-center hover:bg-purple-600 transition">
+                                <i class="fas fa-wallet text-xl mb-2"></i>
+                                <span class="text-sm">Budget</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Recipe Suggestions -->
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Recipe Suggestions</h3>
+                            <a href="{% url 'recipe_list' %}" class="text-primary text-sm font-medium">View All</a>
+                        </div>
+                        <div class="space-y-4">
+                            {% for recipe in recipe_suggestions %}
+                            <div class="border rounded-lg p-3 hover:border-green-300 transition">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-medium">{{ recipe.name }}</h4>
+                                        <p class="text-gray-500 text-sm">
+                                            Uses 
+                                            {% for ingredient in recipe.matching_ingredients %}
+                                                {{ ingredient }}{% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </p>
+                                    </div>
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">{{ recipe.match_percentage }}% Match</span>
+                                </div>
+                                <div class="flex justify-between mt-3 text-sm text-gray-600">
+                                    <span><i class="fas fa-clock mr-1"></i>{{ recipe.prep_time }} min</span>
+                                    <span><i class="fas fa-fire mr-1"></i>{{ recipe.calories }} cal</span>
+                                    <span><i class="fas fa-star mr-1"></i>{{ recipe.rating }}</span>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-4 text-gray-500">
+                                <i class="fas fa-utensils text-2xl mb-2 text-gray-300"></i>
+                                <p class="text-sm">Add more items to get recipe suggestions</p>
+                                <a href="{% url 'add_pantry_item' %}" class="text-primary text-sm mt-2 inline-block">Add Items</a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Waste Reduction Tips -->
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="text-lg font-semibold mb-4">Waste Reduction Tips</h3>
+                        <div class="space-y-3">
+                            {% for tip in waste_tips %}
+                            <div class="flex items-start">
+                                <div class="bg-green-100 p-2 rounded-lg mr-3 mt-1">
+                                    <i class="fas fa-lightbulb text-green-500 text-sm"></i>
+                                </div>
+                                <p class="text-sm">{{ tip }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// JavaScript for interactive elements
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handlers for quick action buttons
+    const quickActionButtons = document.querySelectorAll('.grid.grid-cols-2 a');
+    quickActionButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            console.log('Navigating to:', this.href);
+        });
+    });
+
+    // Add animation to expiring items
+    const expiringItems = document.querySelectorAll('[class*="border-red-200"]');
+    expiringItems.forEach(item => {
+        item.style.animation = 'pulse 2s infinite';
+    });
+
+    // Auto-refresh dashboard every 5 minutes
+    setTimeout(() => {
+        window.location.reload();
+    }, 300000); // 5 minutes
+});
+
+// Add CSS animation for critical items
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    
+    .hover-lift:hover {
+        transform: translateY(-2px);
+        transition: transform 0.2s ease;
+    }
+`;
+document.head.appendChild(style);
+
+// Add hover effects to cards
+document.querySelectorAll('.bg-white.rounded-xl').forEach(card => {
+    card.classList.add('hover-lift');
+});
+</script>
+{% endblock %}

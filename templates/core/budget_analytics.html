@@ -1,0 +1,130 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Budget Analytics - Pantry Pilot{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8">
+    <div class="container mx-auto px-4 max-w-7xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Budget Analytics</h1>
+            <p class="text-lg text-gray-600 mb-6">Track your spending patterns and trends</p>
+            
+            <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                <a href="{% url 'create_budget' %}" class="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-800 text-white font-semibold rounded-lg shadow-md transition-all duration-200">
+                    Create New Budget
+                </a>
+                <a href="{% url 'budget_list' %}" class="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-blue-600 text-white font-semibold rounded-lg shadow-md transition-all duration-200">
+                    Back to Budgets
+                </a>
+            </div>
+        </div>
+
+        <!-- Overall Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-lg">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Allocated</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ total_allocated }} {{ budgets.0.currency|default:"USD" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-lg">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Spent</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ total_spent }} {{ budgets.0.currency|default:"USD" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-orange-100 rounded-lg">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Budgets</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ total_budgets }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Spending Chart -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h3 class="text-xl font-semibold text-gray-800 mb-6">Monthly Spending Trends</h3>
+            <div class="space-y-4">
+                {% for month in monthly_spending %}
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-600 w-24">{{ month.month }}</span>
+                    <div class="flex-1 mx-4">
+                        <div class="w-full bg-gray-200 rounded-full h-4">
+                            <div class="bg-green-500 h-4 rounded-full transition-all duration-500" 
+                                 style="width: {% widthratio month.amount monthly_spending.0.amount 100 %}%"></div>
+                        </div>
+                    </div>
+                    <span class="font-medium text-gray-800 w-20 text-right">{{ month.amount }} {{ budgets.0.currency|default:"USD" }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Budget Performance -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-6">Budget Performance</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-4 text-gray-600">Budget</th>
+                            <th class="text-left py-3 px-4 text-gray-600">Period</th>
+                            <th class="text-left py-3 px-4 text-gray-600">Allocated</th>
+                            <th class="text-left py-3 px-4 text-gray-600">Spent</th>
+                            <th class="text-left py-3 px-4 text-gray-600">Remaining</th>
+                            <th class="text-left py-3 px-4 text-gray-600">Usage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for budget in budgets %}
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-3 px-4">
+                                <div class="font-medium text-gray-800">{{ budget.amount }} {{ budget.currency }}</div>
+                                <div class="text-sm text-gray-600">{{ budget.start_date }} to {{ budget.end_date|default:"Ongoing" }}</div>
+                            </td>
+                            <td class="py-3 px-4">{{ budget.get_period_display }}</td>
+                            <td class="py-3 px-4 font-medium">{{ budget.amount }} {{ budget.currency }}</td>
+                            <td class="py-3 px-4">{{ budget.amount_spent }} {{ budget.currency }}</td>
+                            <td class="py-3 px-4 font-medium text-green-600">{{ budget.get_remaining_budget }} {{ budget.currency }}</td>
+                            <td class="py-3 px-4">
+                                <div class="flex items-center">
+                                    <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                        <div class="bg-green-500 h-2 rounded-full" 
+                                             style="width: {{ budget.get_spending_percentage|floatformat:0 }}%"></div>
+                                    </div>
+                                    <span class="text-sm text-gray-600">{{ budget.get_spending_percentage|floatformat:0 }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

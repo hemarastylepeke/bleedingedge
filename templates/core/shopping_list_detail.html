@@ -1,0 +1,346 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8"> <!-- Changed to match navbar width and added side padding -->
+  <h1 class="text-2xl font-bold text-gray-800 mb-6">{{ shopping_list.name }}</h1>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- ===== Budget & Spending Overview ===== -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+      <h3 class="text-xl font-semibold text-gray-800 mb-4">Budget & Spending</h3>
+      
+      <!-- Active Budget Information -->
+      {% if active_budget %}
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <p class="text-sm text-blue-600 font-medium">Total Budget</p>
+          <p class="text-lg font-bold text-blue-800">${{ active_budget.amount|floatformat:2 }}</p>
+          <p class="text-xs text-blue-600">{{ active_budget.period|title }} • {{ active_budget.currency }}</p>
+        </div>
+        
+        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+          <p class="text-sm text-green-600 font-medium">Amount Spent</p>
+          <p class="text-lg font-bold text-green-800">${{ active_budget.amount_spent|floatformat:2 }}</p>
+          <p class="text-xs text-green-600">{{ active_budget.get_spending_percentage|floatformat:0 }}% of budget</p>
+        </div>
+        
+        <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+          <p class="text-sm text-purple-600 font-medium">Remaining</p>
+          <p class="text-lg font-bold text-purple-800">${{ active_budget.get_remaining_budget|floatformat:2 }}</p>
+          {% if budget_info.daily_budget %}
+          <p class="text-xs text-purple-600">${{ budget_info.daily_budget|floatformat:2 }}/day</p>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Budget Progress Bar -->
+      <div class="mb-4">
+        <div class="flex justify-between text-sm text-gray-600 mb-2">
+          <span>Budget Usage</span>
+          <span>{{ active_budget.get_spending_percentage|floatformat:0 }}%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-3">
+          <div class="bg-green-500 h-3 rounded-full transition-all duration-500"
+               style="width: {{ active_budget.get_spending_percentage }}%"></div>
+        </div>
+      </div>
+      {% else %}
+      <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mb-4">
+        <p class="text-yellow-800 font-medium">No Active Budget</p>
+        <p class="text-sm text-yellow-600">Set up a budget to track your spending</p>
+      </div>
+      {% endif %}
+
+      <!-- Shopping List Cost Summary -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+        <div class="text-center">
+          <p class="text-sm text-gray-600">Estimated Cost</p>
+          <p class="text-xl font-bold text-gray-800">${{ shopping_list.total_estimated_cost|floatformat:2 }}</p>
+        </div>
+        <div class="text-center">
+          <p class="text-sm text-gray-600">Actual Cost</p>
+          <p class="text-xl font-bold {% if shopping_list.total_actual_cost %}text-green-600{% else %}text-gray-500{% endif %}">
+            {% if shopping_list.total_actual_cost %}
+            ${{ shopping_list.total_actual_cost|floatformat:2 }}
+            {% else %}
+            Not confirmed
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Shopping Progress ===== -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+      <h3 class="text-xl font-semibold text-gray-800 mb-4">Shopping Progress</h3>
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-gray-600">
+          {{ purchased_items }}/{{ total_items }} items purchased
+        </span>
+        <span class="font-medium text-green-600">{{ purchased_percentage|floatformat:0 }}%</span>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-3">
+        <div class="bg-green-500 h-3 rounded-full transition-all duration-500"
+             style="width: {{ purchased_percentage }}%"></div>
+      </div>
+    </div>
+
+    <!-- ====== High Priority Items ====== -->
+    {% if high_priority_items %}
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-semibold text-gray-800">High Priority Items</h3>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+          {{ high_priority_items.count }} items
+        </span>
+      </div>
+
+      <div class="space-y-3">
+        {% for item in high_priority_items %}
+        <div class="flex flex-col md:flex-row md:items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
+          <div class="flex items-center space-x-4">
+            <input type="checkbox" name="purchased_{{ item.id }}" {% if item.purchased %}checked{% endif %}
+                   class="w-5 h-5 text-red-600 border-red-300 rounded focus:ring-red-500">
+            <div>
+              <h4 class="font-medium text-gray-800">{{ item.item_name }}</h4>
+              <p class="text-sm text-gray-600">{{ item.quantity }} {{ item.unit }}</p>
+              {% if item.category and item.category != 'other' %}
+              <span class="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full mt-1">
+                {{ item.get_category_display }}
+              </span>
+              {% endif %}
+              {% if item.reason %}
+              <p class="text-xs text-gray-500 mt-1">{{ item.reason }}</p>
+              {% endif %}
+              {% if item.notes %}
+              <p class="text-xs text-gray-400 mt-1">{{ item.notes }}</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mt-3 md:mt-0 text-right space-y-2">
+            <!-- Price Display -->
+            <div>
+              <span class="font-medium text-gray-800">${{ item.estimated_price|floatformat:2 }}</span>
+              {% if item.actual_price %}
+              <span class="block text-sm text-green-600">Actual: ${{ item.actual_price|floatformat:2 }}</span>
+              {% endif %}
+            </div>
+
+            <!-- Price & Quantity Inputs -->
+            <div class="flex space-x-2 justify-end">
+              <input type="number" step="0.01" min="0" name="actual_price_{{ item.id }}" 
+                     placeholder="Actual $" value="{% if item.actual_price %}{{ item.actual_price|floatformat:2 }}{% endif %}"
+                     class="w-28 border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+              <input type="number" step="0.01" min="0" name="purchased_qty_{{ item.id }}" 
+                     placeholder="Qty" value="{% if item.purchased %}{{ item.quantity|floatformat:2 }}{% endif %}"
+                     class="w-20 border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+            </div>
+
+            <!-- Expiry Inputs -->
+            <div class="flex space-x-2 justify-end">
+              <input type="date" name="expiry_date_{{ item.id }}" 
+                     class="border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                     min="{{ today|date:'Y-m-d' }}" />
+              <input type="file" name="expiry_image_{{ item.id }}" accept="image/*"
+                     class="text-sm block w-full md:w-auto border border-gray-300 rounded p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ====== Medium Priority Items ====== -->
+    {% if medium_priority_items %}
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-semibold text-gray-800">Medium Priority Items</h3>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+          {{ medium_priority_items.count }} items
+        </span>
+      </div>
+
+      <div class="space-y-3">
+        {% for item in medium_priority_items %}
+        <div class="flex flex-col md:flex-row md:items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+          <div class="flex items-center space-x-4">
+            <input type="checkbox" name="purchased_{{ item.id }}" {% if item.purchased %}checked{% endif %}
+                   class="w-5 h-5 text-yellow-600 border-yellow-300 rounded focus:ring-yellow-500">
+            <div>
+              <h4 class="font-medium text-gray-800">{{ item.item_name }}</h4>
+              <p class="text-sm text-gray-600">{{ item.quantity }} {{ item.unit }}</p>
+              {% if item.category and item.category != 'other' %}
+              <span class="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full mt-1">
+                {{ item.get_category_display }}
+              </span>
+              {% endif %}
+              {% if item.notes %}
+              <p class="text-xs text-gray-400 mt-1">{{ item.notes }}</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mt-3 md:mt-0 text-right space-y-2">
+            <span class="font-medium text-gray-800">${{ item.estimated_price|floatformat:2 }}</span>
+            <div class="flex space-x-2 justify-end">
+              <input type="number" step="0.01" min="0" name="actual_price_{{ item.id }}" 
+                     placeholder="Actual $" value="{% if item.actual_price %}{{ item.actual_price|floatformat:2 }}{% endif %}"
+                     class="w-28 border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+            </div>
+            <div class="flex space-x-2 justify-end">
+              <input type="date" name="expiry_date_{{ item.id }}" 
+                     class="border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                     min="{{ today|date:'Y-m-d' }}" />
+              <input type="file" name="expiry_image_{{ item.id }}" accept="image/*" 
+                     class="text-sm block w-full md:w-auto border border-gray-300 rounded p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ====== Low Priority Items ====== -->
+    {% if low_priority_items %}
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-semibold text-gray-800">Low Priority Items</h3>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+          {{ low_priority_items.count }} items
+        </span>
+      </div>
+
+      <div class="space-y-3">
+        {% for item in low_priority_items %}
+        <div class="flex flex-col md:flex-row md:items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+          <div class="flex items-center space-x-4">
+            <input type="checkbox" name="purchased_{{ item.id }}" {% if item.purchased %}checked{% endif %}
+                   class="w-5 h-5 text-green-600 border-green-300 rounded focus:ring-green-600">
+            <div>
+              <h4 class="font-medium text-gray-800">{{ item.item_name }}</h4>
+              <p class="text-sm text-gray-600">{{ item.quantity }} {{ item.unit }}</p>
+              {% if item.category and item.category != 'other' %}
+              <span class="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full mt-1">
+                {{ item.get_category_display }}
+              </span>
+              {% endif %}
+              {% if item.notes %}
+              <p class="text-xs text-gray-400 mt-1">{{ item.notes }}</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mt-3 md:mt-0 text-right space-y-2">
+            <span class="font-medium text-gray-800">${{ item.estimated_price|floatformat:2 }}</span>
+            <div class="flex space-x-2 justify-end">
+              <input type="number" step="0.01" min="0" name="actual_price_{{ item.id }}" 
+                     placeholder="Actual $" value="{% if item.actual_price %}{{ item.actual_price|floatformat:2 }}{% endif %}"
+                     class="w-28 border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+            </div>
+            <div class="flex space-x-2 justify-end">
+              <input type="date" name="expiry_date_{{ item.id }}" 
+                     class="border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                     min="{{ today|date:'Y-m-d' }}" />
+              <input type="file" name="expiry_image_{{ item.id }}" accept="image/*" 
+                     class="text-sm block w-full md:w-auto border border-gray-300 rounded p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ====== Shopping Tips ====== -->
+    <div class="bg-blue-50 rounded-xl p-4 mb-6 border border-blue-200">
+      <div class="flex items-start space-x-3">
+        <div class="flex-shrink-0">
+          <i class="fas fa-lightbulb text-blue-600 mt-1"></i>
+        </div>
+        <div>
+          <h4 class="font-medium text-blue-800">Shopping Tips</h4>
+          <ul class="text-sm text-blue-600 mt-1 space-y-1">
+            <li>• Add expiry dates for better food waste tracking</li>
+            <li>• Take photos of expiry labels for automatic detection</li>
+            <li>• Update actual prices for accurate budget tracking</li>
+            <li>• Adjust quantities if you purchased different amounts</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== Confirm Purchases Button ====== -->
+    <div class="mt-8">
+      <input type="hidden" name="action" value="confirm" />
+      <button type="submit"
+              class="w-full bg-green-600 hover:bg-green-800 text-white py-3 px-4 rounded-lg font-medium text-lg transition-colors duration-200 flex items-center justify-center">
+        <i class="fas fa-check-circle mr-2"></i>
+        Confirm Purchases & Update Budget
+      </button>
+      <p class="text-sm text-gray-500 text-center mt-2">
+        This will update your pantry, track spending, and analyze food waste
+      </p>
+    </div>
+  </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add focus styles to all form inputs
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.classList.add('ring-2', 'ring-green-500', 'border-green-500');
+        });
+        input.addEventListener('blur', function() {
+            this.classList.remove('ring-2', 'ring-green-500', 'border-green-500');
+        });
+    });
+
+    // Auto-calculate purchased percentage when checkboxes are clicked
+    const checkboxes = document.querySelectorAll('input[type="checkbox"][name^="purchased_"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateProgress);
+    });
+
+    function updateProgress() {
+        const totalItems = checkboxes.length;
+        const purchasedItems = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const percentage = totalItems > 0 ? (purchasedItems / totalItems) * 100 : 0;
+        
+        // Update progress bar
+        const progressBar = document.querySelector('.bg-green-500.h-3');
+        if (progressBar) {
+            progressBar.style.width = percentage + '%';
+        }
+        
+        // Update text
+        const progressText = document.querySelector('.text-gray-600');
+        if (progressText) {
+            progressText.textContent = purchasedItems + '/' + totalItems + ' items purchased';
+        }
+        
+        const percentageText = document.querySelector('.font-medium.text-green-600');
+        if (percentageText) {
+            percentageText.textContent = Math.round(percentage) + '%';
+        }
+    }
+
+    // Set minimum date for expiry dates to today
+    const today = new Date().toISOString().split('T')[0];
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    dateInputs.forEach(input => {
+        if (!input.value) {
+            input.value = today;
+        }
+    });
+});
+</script>
+
+{% endblock %}

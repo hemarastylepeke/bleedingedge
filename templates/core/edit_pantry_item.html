@@ -1,0 +1,398 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Edit {{ pantry_item.name }} - PantryChef{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8">
+    <div class="container mx-auto px-4 max-w-4xl">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-green-500 to-blue-500 px-8 py-6">
+                <h1 class="text-2xl md:text-3xl font-bold text-white">Edit Pantry Item</h1>
+                <p class="text-green-100 font-medium mt-2">Update details for {{ pantry_item.name }}</p>
+            </div>
+
+            <!-- Form -->
+            <div class="p-8">
+                <form method="post" class="space-y-8">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information Section -->
+                    <div class="space-y-6 p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
+                        <div class="flex items-center">
+                            <div class="w-1.5 h-6 bg-green-500 rounded-full mr-3"></div>
+                            <h2 class="text-lg font-semibold text-gray-900">Basic Information</h2>
+                        </div>
+                        
+                        <!-- Name Field -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">
+                                Item Name <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                {{ form.name }}
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                </div>
+                            </div>
+                            {% if form.name.errors %}
+                            <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                                {{ form.name.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Category Field -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">
+                                Category <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                {{ form.category }}
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 mt-7">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            {% if form.category.errors %}
+                            <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                                {{ form.category.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Quantity and Unit Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-3">
+                                    Quantity <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.quantity }}
+                                {% if form.quantity.errors %}
+                                <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                                    {{ form.quantity.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-3">
+                                    Unit <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.unit }}
+                                {% if form.unit.errors %}
+                                <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                                    {{ form.unit.errors }}
+                                </div>
+                                {% endif %}
+                                <p class="text-xs text-gray-500 mt-2">Examples: g, kg, ml, l, pieces, cups, tbsp, tsp</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date Information Section -->
+                    <div class="space-y-6 p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
+                        <div class="flex items-center">
+                            <div class="w-1.5 h-6 bg-blue-500 rounded-full mr-3"></div>
+                            <h2 class="text-lg font-semibold text-gray-900">Date Information</h2>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-3">
+                                    Purchase Date <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    {{ form.purchase_date }}
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    </div>
+                                </div>
+                                {% if form.purchase_date.errors %}
+                                <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                                    {{ form.purchase_date.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-3">
+                                    Expiry Date <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    {{ form.expiry_date }}
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    </div>
+                                </div>
+                                {% if form.expiry_date.errors %}
+                                <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                                    {{ form.expiry_date.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nutritional Information Section -->
+                    <div class="space-y-6 p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
+                        <div class="flex items-center">
+                            <div class="w-1.5 h-6 bg-purple-500 rounded-full mr-3"></div>
+                            <h2 class="text-lg font-semibold text-gray-900">Nutritional Information (per 100g)</h2>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-6">Optional - fill in nutritional values for better recipe calculations</p>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">
+                                    Calories
+                                </label>
+                                {{ form.calories }}
+                                {% if form.calories.errors %}
+                                <div class="text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                                    {{ form.calories.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">
+                                    Protein (g)
+                                </label>
+                                {{ form.protein }}
+                                {% if form.protein.errors %}
+                                <div class="text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                                    {{ form.protein.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">
+                                    Carbs (g)
+                                </label>
+                                {{ form.carbs }}
+                                {% if form.carbs.errors %}
+                                <div class="text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                                    {{ form.carbs.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">
+                                    Fat (g)
+                                </label>
+                                {{ form.fat }}
+                                {% if form.fat.errors %}
+                                <div class="text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                                    {{ form.fat.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">
+                                    Fiber (g)
+                                </label>
+                                {{ form.fiber }}
+                                {% if form.fiber.errors %}
+                                <div class="text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                                    {{ form.fiber.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Information Section -->
+                    <div class="space-y-6 p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
+                        <div class="flex items-center">
+                            <div class="w-1.5 h-6 bg-amber-500 rounded-full mr-3"></div>
+                            <h2 class="text-lg font-semibold text-gray-900">Additional Information</h2>
+                        </div>
+                        
+                        <!-- Price and Barcode Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-3">
+                                    Price (optional)
+                                </label>
+                                <div class="relative">
+                                    {{ form.price }}
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                        
+                                    </div>
+                                </div>
+                                {% if form.price.errors %}
+                                <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                                    {{ form.price.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-3">
+                                    Barcode (optional)
+                                </label>
+                                <div class="relative">
+                                    {{ form.barcode }}
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    </div>
+                                </div>
+                                {% if form.barcode.errors %}
+                                <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                                    {{ form.barcode.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Storage Instructions -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">
+                                Storage Instructions (optional)
+                            </label>
+                            {{ form.storage_instructions }}
+                            {% if form.storage_instructions.errors %}
+                            <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                                {{ form.storage_instructions.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Notes Field -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">
+                                Notes (optional)
+                            </label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                            <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                                {{ form.notes.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex flex-col sm:flex-row gap-6 pt-6 border-t border-gray-200">
+                        <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center shadow-sm border border-green-600">
+                            <i class="fas fa-save mr-2"></i>
+                            Update Item
+                        </button>
+                        <a href="{% url 'pantry_list' %}" class="flex-1 bg-white hover:bg-gray-50 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors duration-200 text-center flex items-center justify-center border border-gray-300 shadow-sm">
+                            <i class="fas fa-times mr-2"></i>
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Form input styling */
+input, select, textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background-color: white;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Custom select dropdown styling */
+select {
+    appearance: none;
+    background-image: none;
+    padding-right: 2.5rem;
+}
+
+/* Remove any inline background images from Django form */
+select {
+    background-image: none !important;
+}
+
+/* Error styling */
+.error {
+    border-color: #ef4444;
+}
+
+.error:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Section spacing improvements */
+.space-y-8 > * + * {
+    margin-top: 2rem;
+}
+
+.space-y-6 > * + * {
+    margin-top: 1.5rem;
+}
+
+/* Grid gap improvements */
+.gap-6 > * {
+    margin: 0;
+}
+
+.gap-4 > * {
+    margin: 0;
+}
+
+/* Fix dropdown arrow positioning */
+.relative .absolute {
+    top: 50%;
+    transform: translateY(-50%);
+    margin-top: 0.75rem;
+}
+
+/* Textarea specific styling */
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add today's date as default for purchase date if empty
+    const purchaseDateField = document.querySelector('input[type="date"][name="purchase_date"]');
+    if (purchaseDateField && !purchaseDateField.value) {
+        const today = new Date().toISOString().split('T')[0];
+        purchaseDateField.value = today;
+    }
+    
+    // Auto-set expiry date to 7 days from today if not set
+    const expiryDateField = document.querySelector('input[type="date"][name="expiry_date"]');
+    if (expiryDateField && !expiryDateField.value) {
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        expiryDateField.value = nextWeek.toISOString().split('T')[0];
+    }
+    
+    // Add error classes to form fields with errors
+    const errorFields = document.querySelectorAll('.errorlist');
+    errorFields.forEach(errorList => {
+        const field = errorList.closest('.space-y-6').querySelector('input, select, textarea');
+        if (field) {
+            field.classList.add('error');
+        }
+    });
+
+    // Auto-focus on name field
+    const nameField = document.querySelector('input[name="name"]');
+    if (nameField) {
+        nameField.focus();
+    }
+});
+</script>
+{% endblock %}

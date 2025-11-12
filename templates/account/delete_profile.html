@@ -1,0 +1,145 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full bg-white shadow-lg rounded-xl p-8">
+    <!-- Warning Icon -->
+    <div class="flex justify-center mb-6">
+      <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="text-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-900">Delete Profile</h2>
+      <p class="text-gray-600 mt-2">Are you sure you want to delete your profile?</p>
+    </div>
+
+    {% if messages %}
+      <div class="space-y-3 mb-6">
+        {% for message in messages %}
+          <div class="px-4 py-3 rounded-lg border {% if message.tags == 'error' %}bg-red-50 text-red-700 border-red-200{% else %}bg-blue-50 text-blue-700 border-blue-200{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Warning Details -->
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <h3 class="font-semibold text-red-800 mb-2">This action cannot be undone</h3>
+      <ul class="text-sm text-red-700 space-y-1">
+        <li>• Your profile information will be permanently deleted</li>
+        <li>• Your dietary preferences will be lost</li>
+        <li>• Your personal settings will be removed</li>
+        <li>• You will be logged out immediately</li>
+      </ul>
+    </div>
+
+    <!-- Profile Summary -->
+    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+      <h3 class="font-semibold text-gray-800 mb-2">Profile to be deleted:</h3>
+      <div class="flex items-center space-x-3">
+        {% if profile.profile_image %}
+          <img src="{{ profile.profile_image.url }}" alt="Profile" class="w-12 h-12 rounded-full object-cover">
+        {% else %}
+          <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+            <span class="text-gray-600 text-sm font-medium">{{ profile.first_name|first|default:profile.user.username|first|upper }}</span>
+          </div>
+        {% endif %}
+        <div>
+          <p class="font-medium text-gray-900">
+            {% if profile.first_name and profile.last_name %}
+              {{ profile.first_name }} {{ profile.last_name }}
+            {% else %}
+              {{ profile.user.username }}
+            {% endif %}
+          </p>
+          <p class="text-sm text-gray-600">{{ profile.user.email }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Form -->
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      
+      <!-- Confirmation Input -->
+      <div>
+        <label for="confirm_text" class="block text-sm font-medium text-gray-700 mb-2">
+          Type "DELETE" to confirm:
+        </label>
+        <input 
+          type="text" 
+          id="confirm_text" 
+          name="confirm_text"
+          placeholder="DELETE"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+          oninput="toggleDeleteButton()"
+        >
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex space-x-3 pt-4">
+        <a 
+          href="{% url 'profile_page' %}" 
+          class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Cancel
+        </a>
+        <button 
+          id="deleteButton"
+          type="submit"
+          disabled
+          class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-gray-600 bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors duration-200"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+          Delete Profile
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function toggleDeleteButton() {
+  const confirmInput = document.getElementById('confirm_text');
+  const deleteButton = document.getElementById('deleteButton');
+  deleteButton.disabled = confirmInput.value !== 'DELETE';
+}
+
+// Initialize button state
+document.addEventListener('DOMContentLoaded', function() {
+  toggleDeleteButton();
+});
+</script>
+
+<style>
+input[type="text"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #ffffff;
+  font-size: 14px;
+  color: #1f2937;
+  transition: all 0.3s ease;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: #ef4444;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+</style>
+{% endblock %}

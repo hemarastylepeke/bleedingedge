@@ -1,0 +1,48 @@
+{% extends 'core/base_login.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    <div class="max-w-screen-xl px-2 py-4 mx-auto items-center flex justify-center">
+        <div class="max-w-md w-full">
+            <form method="POST" action="{% url 'account_login' %}" class="px-3 rounded-2xl w-full max-w-md border border-slate-200 dark:border-slate-700 py-5">
+                {% csrf_token %}
+                <div class="flex justify-center items-center">
+                    <img src="{% static 'images/logo.png' %}" alt="Pantry Cheff logo" class="h-24 w-24">
+                </div>
+                <h2 class="text-center justify-center font-barlow font-semibold text-black text-xl mb-5 mt-5">
+                    Sign in
+                </h2>
+                <div class="my-3 mb-4 border-b dark:border-slate-800 text-center">
+                    <div
+                        class="leading-none px-2 font-barlow inline-block text-sm text-slate-600 tracking-wide font-medium bg-slate-50 transform translate-y-2.5">
+                        sign in with e-mail
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <label for="id_login" class="block mb-2 text-sm font-medium text-slate-600 font-barlow">Email address</label>
+                    <input type="email" name="login" id="id_login" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-[5px] focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-slate-700 dark:border-slate-600 dark:placeholder-slate-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="johndoe@company.com" required />
+                </div>
+                <div class="w-full mb-3">
+                    <label for="id_password" class="block mb-2 text-sm font-medium text-slate-600 font-barlow">Password</label>
+                    <input type="password" name="password" id="id_password" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-[5px] focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-slate-700 dark:border-slate-600 dark:placeholder-slate-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="•••••••••" required />
+                </div>
+                <div class="flex items-center gap-2">
+                    <label for="id_remember" class="block text-sm/6 font-medium text-slate-900 ">Remember Me</label>
+                    <input type="checkbox" name="remember" id="id_remember" class="h-4 w-4 cursor-pointer rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                </div>
+                <div class="float-right mb-3">
+                    <a href="{% url 'account_reset_password' %}" class="text-green-500 hover:cursor-pointer hover:underline font-semibold text-sm font-barlow ">Forgot Password</a>
+                </div>
+                <div class="mb-2">
+                    <button type="submit" class="text-white hover:cursor-pointer bg-green-600 hover:bg-green-700 w-full focus:ring-4 focus:outline-none focus:ring-green-600 ease-in duration-500 font-medium rounded-[5px] text-sm px-4 py-3 text-center">
+                        Sign In
+                    </button>
+                </div>
+                <div>
+                    <p class="font-barlow text-sm font-semibold text-slate-500 dark:text-slate-400">Don't Have an account? <a href="{% url 'account_signup' %}" class="text-green-500">Signup</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock content %}

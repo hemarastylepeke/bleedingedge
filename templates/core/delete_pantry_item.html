@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Remove Item - PantryChef</title>
+</head>
+<body>
+    <header>
+        <h1>Remove Item from Pantry</h1>
+        <nav>
+            <a href="">Back to Pantry</a>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Remove {{ pantry_item.ingredient.name }} from pantry?</h2>
+        <p>Quantity: {{ pantry_item.quantity }} {{ pantry_item.unit }}</p>
+        <p>Expiry Date: {{ pantry_item.expiry_date }}</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <p>Are you sure you want to remove this item from your pantry?</p>
+            <button type="submit">Yes, Remove Item</button>
+            <a href="">Cancel</a>
+        </form>
+    </main>
+</body>
+</html>

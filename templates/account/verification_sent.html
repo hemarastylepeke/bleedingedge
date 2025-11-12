@@ -1,0 +1,16 @@
+
+{% extends 'core/base_login.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    <div class="max-w-screen-xl px-2 py-6 mx-auto items-center flex justify-center">
+        <div class="max-w-lg w-full">
+            <div class="bg-slate-50 border border-slate-200 dark:border-slate-700 rounded px-8 py-6 text-center">
+                <h2 class="text-2xl font-semibold mb-4 text-slate-700 ">{% trans "Verification Email Sent" %}</h2>
+                <p class="mb-4 text-slate-700 dark:text-slate-400">{% trans "Check your email address to activate your account." %}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">{% trans "If you don't see the email, please check your spam or junk folder." %}</p>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

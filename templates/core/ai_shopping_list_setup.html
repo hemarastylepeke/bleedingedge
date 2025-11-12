@@ -1,0 +1,174 @@
+{% extends "core/base.html" %}
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8">
+  <div class="container mx-auto px-4 max-w-4xl">
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden mx-auto mb-8" style="max-width: 800px;">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-green-500 to-blue-500 px-6 py-6">
+        <h1 class="text-2xl md:text-3xl font-bold text-white text-center">Generate AI Shopping List</h1>
+        <p class="text-green-100 font-medium mt-2 text-center">Let AI create your perfect shopping list based on your budget</p>
+      </div>
+
+      <!-- Content -->
+      <div class="p-6 md:p-8">
+        <!-- Budget Information -->
+        <div class="bg-gray-50 rounded-lg p-6 mb-8 border border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-wallet text-green-600 mr-3"></i>
+            Active Budget Overview
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-3">
+              <div class="flex items-center">
+                <span class="text-gray-600 pr-4">Budget Amount:</span>
+                <span class="font-semibold pl-4 text-gray-800">{{ active_budget.amount }} {{ active_budget.currency }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-gray-600 pr-4">Period:</span>
+                <span class="font-medium text-gray-800">{{ active_budget.period|title }}</span>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-gray-600">Start Date:</span>
+                <span class="font-medium text-gray-800">{{ active_budget.start_date }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-gray-600">End Date:</span>
+                <span class="font-medium text-gray-800">{{ active_budget.end_date }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form -->
+        <form method="POST" class="flex flex-col gap-8">
+          {% csrf_token %}
+          
+          <!-- Period Selection -->
+          <div>
+            <label for="period" class="block text-sm font-medium text-gray-700 mb-3">
+              Select Budget Period <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <select name="period" id="period" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors appearance-none pr-10">
+                <option value="weekly">Weekly Shopping List</option>
+                <option value="monthly">Monthly Shopping List</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Features Info -->
+          <div class="bg-blue-50 rounded-lg p-6 border border-blue-200">
+            <h4 class="font-semibold text-blue-800 mb-6 flex items-center">
+              <i class="fas fa-robot text-blue-600 mr-2"></i>
+              AI-Powered Features:
+            </h4>
+            <ul class="text-sm text-blue-700 space-y-3">
+              <li class="flex items-start">
+                <i class="fas fa-check-circle text-blue-500 mt-0.5 mr-3 text-sm"></i>
+                <span>Analyzes your pantry items and consumption patterns</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check-circle text-blue-500 mt-0.5 mr-3 text-sm"></i>
+                <span>Suggests items based on your budget and preferences</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check-circle text-blue-500 mt-0.5 mr-3 text-sm"></i>
+                <span>Prioritizes items to minimize food waste</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check-circle text-blue-500 mt-0.5 mr-3 text-sm"></i>
+                <span>Considers nutritional balance and meal variety</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="mt-4">
+            <button
+              type="submit"
+              class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center shadow-md">
+              <i class="fas fa-magic mr-3"></i>
+              Generate Smart Shopping List
+            </button>
+
+            <p class="text-sm text-gray-500 text-center mt-4">
+              This may take a few moments as AI analyzes your preferences
+            </p>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Additional Info -->
+    <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 mx-auto" style="max-width: 800px;">
+      <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center justify-center">
+        <i class="fas fa-info-circle text-green-600 mr-3"></i>
+        How It Works
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-gray-600">
+        <div class="text-center p-4">
+          <div class="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-chart-line text-green-600"></i>
+          </div>
+          <p class="font-medium text-gray-800 mb-2">Analyze Patterns</p>
+          <p class="text-gray-600 text-sm leading-relaxed">AI reviews your shopping history and pantry items</p>
+        </div>
+        <div class="text-center p-4">
+          <div class="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-calculator text-blue-600"></i>
+          </div>
+          <p class="font-medium text-gray-800 mb-2">Calculate Needs</p>
+          <p class="text-gray-600 text-sm leading-relaxed">Determines optimal items within your budget</p>
+        </div>
+        <div class="text-center p-4">
+          <div class="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-list-alt text-purple-600"></i>
+          </div>
+          <p class="font-medium text-gray-800 mb-2">Generate List</p>
+          <p class="text-gray-600 text-sm leading-relaxed">Creates a personalized shopping list with priorities</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Form input styling */
+select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background-color: white;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  appearance: none;
+  background-image: none;
+  padding-right: 2.5rem;
+}
+
+select:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Remove any inline background images */
+select {
+  background-image: none !important;
+}
+
+/* Fix dropdown arrow positioning */
+.relative .absolute {
+  top: 50%;
+  transform: translateY(-50%);
+}
+</style>
+{% endblock %}

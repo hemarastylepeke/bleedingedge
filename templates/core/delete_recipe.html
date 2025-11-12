@@ -1,0 +1,84 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Delete Recipe - Pantry Pilot{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8">
+    <div class="container mx-auto px-4 max-w-2xl">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-red-500 px-8 py-6">
+                <h1 class="text-2xl md:text-3xl font-bold text-white">Delete Recipe</h1>
+                <p class="text-red-100 mt-2">This action cannot be undone</p>
+            </div>
+
+            <!-- Content -->
+            <div class="p-8">
+                <!-- Warning Icon -->
+                <div class="text-center mb-6">
+                    <svg class="w-16 h-16 text-red-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+
+                <!-- Confirmation Message -->
+                <div class="text-center mb-8">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                        Are you sure you want to delete "{{ recipe.name }}"?
+                    </h3>
+                    <p class="text-gray-600">
+                        This will permanently remove the recipe and all its data. 
+                        This action cannot be undone.
+                    </p>
+                </div>
+
+                <!-- Recipe Details -->
+                <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+                    <h4 class="font-semibold text-red-800 mb-4">Recipe Details:</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm text-red-700">
+                        <div>
+                            <strong>Name:</strong><br>
+                            {{ recipe.name }}
+                        </div>
+                        <div>
+                            <strong>Cuisine:</strong><br>
+                            {{ recipe.get_cuisine_display }}
+                        </div>
+                        <div>
+                            <strong>Difficulty:</strong><br>
+                            {{ recipe.get_difficulty_display }}
+                        </div>
+                        <div>
+                            <strong>Servings:</strong><br>
+                            {{ recipe.servings }}
+                        </div>
+                        <div>
+                            <strong>Created:</strong><br>
+                            {{ recipe.created_at|date:"M d, Y" }}
+                        </div>
+                        <div>
+                            <strong>Created by:</strong><br>
+                            {{ recipe.created_by.username|default:"System" }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <form method="post" class="flex-1">
+                        {% csrf_token %}
+                        <button type="submit" 
+                                class="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-6 rounded-lg font-semibold transition-colors duration-200 transform hover:scale-105">
+                            Yes, Delete Recipe
+                        </button>
+                    </form>
+                    <a href="{% url 'recipe_detail' recipe.id %}" 
+                       class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 px-6 rounded-lg font-semibold text-center transition-colors duration-200">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

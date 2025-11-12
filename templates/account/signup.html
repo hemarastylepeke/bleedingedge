@@ -1,0 +1,76 @@
+{% extends 'core/base_login.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    <div class="max-w-screen-xl px-2 py-6 mx-auto items-center flex justify-center">
+        <div class="max-w-md w-full">
+            <form method="POST" class="px-3 rounded-2xl w-full max-w-md border flex flex-col border-slate-200 dark:border-slate-700 py-5">
+                {% csrf_token %}
+                <div class="flex justify-center items-center">
+                    <img src="{% static 'images/logo.png' %}" alt="Pantry cheff logo" class="h-24 w-24">
+                </div>
+                <h2 class="text-center justify-center font-barlow font-semibold text-slate-900 text-xl mb-5 mt-5">
+                    Sign Up
+                </h2>
+                <!-- Form field errors -->
+                {% if form.email.errors %}
+                    <div class="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
+                        <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                        </svg>
+                        <span class="sr-only">Info</span>
+                        <div>
+                            {{ form.email.errors | safe }}
+                        </div>
+                    </div>
+                {% endif %}
+                {% if form.password1.errors %}
+                    <div class="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
+                        <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                        </svg>
+                        <span class="sr-only">Info</span>
+                        <div>
+                            {{ form.password1.errors | safe }}
+                        </div>
+                    </div>
+                {% endif %}
+                {% if form.password2.errors %}
+                    <div class="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
+                        <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                        </svg>
+                        <span class="sr-only">Info</span>
+                        <div>
+                            {{ form.password2.errors | safe }}
+                        </div>
+                    </div>
+                {% endif %}
+                <div class=" mb-6">
+                    <label for="id_email" class="block mb-2 text-sm font-medium text-slate-900 font-barlow">Email address</label>
+                    <input type="email" name="email" id="id_email" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-[5px] focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-slate-700 dark:border-slate-600 dark:placeholder-slate-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500" placeholder="Email address" autocomplete="email" maxlength="320"  required />
+                </div>
+                <div class="flex flex-col md:flex-row gap-3 mb-6">
+                    <div class="w-full mb-3 md:mb-0">
+                        <label for="id_password1" class="block mb-2 text-sm font-medium text-slate-900  font-barlow">Password</label>
+                        <input name="password1" type="password" id="id_password1" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-[5px] focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-slate-700 dark:border-slate-600 dark:placeholder-slate-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500" placeholder="•••••••••"  autocomplete="new-password" required aria-describedby="id_password1_helptext" />
+                    </div> 
+                    <div class="w-full">
+                        <label for="id_password2" class="block mb-2 text-sm font-medium text-slate-900 font-barlow">Confirm password</label>
+                        <input name="password2" type="password" id="id_password2" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-[5px] focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-slate-700 dark:border-slate-600 dark:placeholder-slate-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500" placeholder="•••••••••" autocomplete="new-password" required />
+                    </div> 
+                </div>
+                <div class="mb-2">
+                    <button type="submit" class="text-slate-50 hover:cursor-pointer bg-green-600 hover:bg-green-700 w-full focus:ring-4 focus:outline-none focus:ring-green-600 ease-in duration-500 font-medium rounded-[5px] text-sm px-4 py-3 text-center">
+                        Sign Up
+                    </button>
+                </div>
+                <div class="flex flex-col gap-3 mt-3">
+                    <small class=" text-slate-950 dark:text-slate-50 font-semibold">Have an account? <a href="{% url 'account_login' %}" class="text-green-600">Login</a></small>
+                    <small class=" text-slate-950 dark:text-slate-50 font-semibold">By signing up, you agree to <a href="" class="text-green-600 hover:text-green-800">Usage terms</a> & <a href="" class="text-green-600 hover:text-green-800">Privacy Policy</a> </small>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock content %}

@@ -1,0 +1,195 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Budget Details - Pantry Pilot{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8">
+    <div class="container mx-auto px-4 max-w-6xl">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-800">Budget Details</h1>
+                <div class="flex items-center gap-6 mt-2">
+                    <span class="text-2xl font-bold text-green-600">{{ budget.amount }} {{ budget.currency }}</span>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                        {% if budget.active %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ budget.get_period_display }} Budget
+                    </span>
+                    {% if budget.active %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        Active
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex gap-2 mt-4 md:mt-0">
+                <a href="{% url 'edit_budget' budget.id %}" 
+                   class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
+                    Edit
+                </a>
+                <form method="post" action="{% url 'toggle_budget_active' budget.id %}">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="{% if budget.active %}bg-yellow-500 hover:bg-yellow-600{% else %}bg-green-500 hover:bg-green-600{% endif %} text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
+                        {{ budget.active|yesno:"Deactivate,Activate" }}
+                    </button>
+                </form>
+                <a href="{% url 'budget_list' %}" 
+                   class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
+                    Back to List
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Main Info -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Spending Progress -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-6">Spending Progress</h3>
+                    
+                    <!-- Progress Circle -->
+                    <div class="flex items-center justify-center mb-6">
+                        <div class="relative w-48 h-48">
+                            <svg class="w-full h-full" viewBox="0 0 120 120">
+                                <!-- Background Circle -->
+                                <circle cx="60" cy="60" r="54" fill="none" stroke="#e5e7eb" stroke-width="8"/>
+                                <!-- Progress Circle -->
+                                <circle cx="60" cy="60" r="54" fill="none" 
+                                        stroke="{% if spending_percentage > 80 %}red{% elif spending_percentage > 60 %}orange{% else %}green{% endif %}" 
+                                        stroke-width="8" stroke-linecap="round"
+                                        stroke-dasharray="339.292" 
+                                        stroke-dashoffset="{{ 339.292|add:'0'|floatformat:0|add:'-' }}{{ spending_percentage|floatformat:0|add:'%' }}"/>
+                                <!-- Text -->
+                                <text x="60" y="60" text-anchor="middle" dy="7" font-size="16" font-weight="bold"
+                                      fill="{% if spending_percentage > 80 %}red{% elif spending_percentage > 60 %}orange{% else %}green{% endif %}">
+                                    {{ spending_percentage|floatformat:0 }}%
+                                </text>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Spending Details -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                        <div class="p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600">{{ budget.amount_spent }} {{ budget.currency }}</div>
+                            <div class="text-sm text-gray-600">Spent</div>
+                        </div>
+                        <div class="p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600">{{ remaining_budget }} {{ budget.currency }}</div>
+                            <div class="text-sm text-gray-600">Remaining</div>
+                        </div>
+                        <div class="p-4 bg-orange-50 rounded-lg">
+                            <div class="text-2xl font-bold text-orange-600">{{ daily_budget|floatformat:2 }} {{ budget.currency }}</div>
+                            <div class="text-sm text-gray-600">Daily Budget</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Shopping Lists -->
+                {% if shopping_lists %}
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Recent Shopping Lists</h3>
+                    <div class="space-y-3">
+                        {% for list in shopping_lists %}
+                        <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <div>
+                                <h4 class="font-medium text-gray-800">{{ list.name }}</h4>
+                                <p class="text-sm text-gray-600">{{ list.created_at|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-medium text-gray-800">{{ list.total_estimated_cost }} {{ budget.currency }}</span>
+                                <span class="block text-sm {% if list.status == 'completed' %}text-green-600{% else %}text-yellow-600{% endif %}">
+                                    {{ list.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Column - Additional Info -->
+            <div class="space-y-6">
+                <!-- Budget Information -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Budget Information</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Period:</span>
+                            <span class="font-medium">{{ budget.get_period_display }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Currency:</span>
+                            <span class="font-medium">{{ budget.currency }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Start Date:</span>
+                            <span class="font-medium">{{ budget.start_date }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">End Date:</span>
+                            <span class="font-medium">{{ budget.end_date|default:"Ongoing" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Days Remaining:</span>
+                            <span class="font-medium {% if days_remaining < 7 %}text-red-600{% elif days_remaining < 14 %}text-orange-600{% else %}text-green-600{% endif %}">
+                                {{ days_remaining }}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Status:</span>
+                            <span class="font-medium {% if budget.active %}text-green-600{% else %}text-gray-600{% endif %}">
+                                {{ budget.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Purchases -->
+                {% if pantry_items %}
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Recent Purchases</h3>
+                    <div class="space-y-3">
+                        {% for item in pantry_items %}
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <span class="font-medium text-gray-800 text-sm">{{ item.ingredient.name }}</span>
+                                <span class="text-gray-600 text-xs block">{{ item.purchase_date }}</span>
+                            </div>
+                            <span class="font-medium text-gray-800 text-sm">
+                                {{ item.price }} {{ budget.currency }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h3>
+                    <div class="space-y-3">
+                        <a href="{% url 'edit_budget' budget.id %}" 
+                           class="w-full bg-green-600 hover:bg-blue-600 text-white py-3 px-4 rounded-lg text-center block transition-colors duration-200 font-medium">
+                            Edit Budget
+                        </a>
+                        <form method="post" action="{% url 'toggle_budget_active' budget.id %}">
+                            {% csrf_token %}
+                            <button type="submit" 
+                                    class="w-full {% if budget.active %}bg-green-600 hover:bg-yellow-600{% else %}bg-green-600 hover:bg-green-600{% endif %} text-gray-600 py-3 px-4 rounded-lg transition-colors duration-200 font-medium">
+                                {{ budget.active|yesno:"Deactivate,Activate" }} Budget
+                            </button>
+                        </form>
+                        <a href="{% url 'budget_list' %}" 
+                           class="w-full bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-lg text-center block transition-colors duration-200 font-medium">
+                            Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

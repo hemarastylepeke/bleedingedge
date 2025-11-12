@@ -1,0 +1,552 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Add Item - PantryCheff{% endblock %}
+
+{% block sidebar_subtitle %}Add Item{% endblock %}
+
+{% block header_title %}Add Item to Pantry{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'pantry_dashboard' %}" class="bg-white text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition flex items-center shadow-sm border border-gray-200">
+    <i class="fas fa-arrow-left mr-2"></i>
+    Back to Dashboard
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-8 space-y-3">
+        {% for message in messages %}
+        <div class="{% if message.tags == 'success' %}bg-green-50 border border-green-200 text-green-800{% elif message.tags == 'error' %}bg-red-50 border border-red-200 text-red-800{% elif message.tags == 'warning' %}bg-amber-50 border border-amber-200 text-amber-800{% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %} rounded-lg p-4">
+            <div class="flex items-center">
+                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-times-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %} mr-3"></i>
+                <span class="font-medium">{{ message }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Form Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 px-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800">Add New Pantry Item</h2>
+            <p class="text-sm text-gray-600 mt-1">Fill in the details below to add an item to your pantry</p>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data" class="p-6 space-y-8">
+            {% csrf_token %}
+            
+            <!-- Basic Information Section -->
+            <div class="space-y-6 p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
+                <div class="flex items-center">
+                    <div class="w-1.5 h-6 bg-green-500 rounded-full mr-3"></div>
+                    <h2 class="text-lg font-semibold text-gray-900">Basic Information</h2>
+                </div>
+                
+                <!-- Name Field -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Item Name <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        {{ form.name }}
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+                        </div>
+                    </div>
+                    {% if form.name.errors %}
+                    <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                        {{ form.name.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Category Field -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Category <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        {{ form.category }}
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 mt-7">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    {% if form.category.errors %}
+                    <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                        {{ form.category.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Quantity and Unit Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Quantity <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.quantity }}
+                        {% if form.quantity.errors %}
+                        <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                            {{ form.quantity.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Unit <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.unit }}
+                        {% if form.unit.errors %}
+                        <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                            {{ form.unit.errors }}
+                        </div>
+                        {% endif %}
+                        <p class="text-xs text-gray-500 mt-2">Examples: g, kg, ml, l, pieces, cups, tbsp, tsp</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Information Section -->
+            <div class="space-y-6 p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
+                <div class="flex items-center">
+                    <div class="w-1.5 h-6 bg-blue-500 rounded-full mr-3"></div>
+                    <h2 class="text-lg font-semibold text-gray-900">Date Information</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Purchase Date <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            {{ form.purchase_date }}
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            </div>
+                        </div>
+                        {% if form.purchase_date.errors %}
+                        <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                            {{ form.purchase_date.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Expiry Date <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            {{ form.expiry_date }}
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            </div>
+                        </div>
+                        {% if form.expiry_date.errors %}
+                        <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                            {{ form.expiry_date.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nutritional Information Section -->
+            <div class="space-y-6 p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
+                <div class="flex items-center">
+                    <div class="w-1.5 h-6 bg-purple-500 rounded-full mr-3"></div>
+                    <h2 class="text-lg font-semibold text-gray-900">Nutritional Information (per 100g)</h2>
+                </div>
+                <p class="text-sm text-gray-600 mb-4">Optional - fill in nutritional values for better recipe calculations</p>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Calories
+                        </label>
+                        {{ form.calories }}
+                        {% if form.calories.errors %}
+                        <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                            {{ form.calories.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Protein (g)
+                        </label>
+                        {{ form.protein }}
+                        {% if form.protein.errors %}
+                        <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                            {{ form.protein.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Carbs (g)
+                        </label>
+                        {{ form.carbs }}
+                        {% if form.carbs.errors %}
+                        <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                            {{ form.carbs.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Fat (g)
+                        </label>
+                        {{ form.fat }}
+                        {% if form.fat.errors %}
+                        <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                            {{ form.fat.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Fiber (g)
+                        </label>
+                        {{ form.fiber }}
+                        {% if form.fiber.errors %}
+                        <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                            {{ form.fiber.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Information Section -->
+            <div class="space-y-6 p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
+                <div class="flex items-center">
+                    <div class="w-1.5 h-6 bg-amber-500 rounded-full mr-3"></div>
+                    <h2 class="text-lg font-semibold text-gray-900">Additional Information</h2>
+                </div>
+                
+                <!-- Price Field -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Price (optional)
+                        </label>
+                        <div class="relative">
+                            {{ form.price }}
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            </div>
+                        </div>
+                        {% if form.price.errors %}
+                        <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                            {{ form.price.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Barcode (optional)
+                        </label>
+                        <div class="relative">
+                            {{ form.barcode }}
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            </div>
+                        </div>
+                        {% if form.barcode.errors %}
+                        <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                            {{ form.barcode.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Storage Instructions -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Storage Instructions (optional)
+                    </label>
+                    {{ form.storage_instructions }}
+                    {% if form.storage_instructions.errors %}
+                    <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                        {{ form.storage_instructions.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Image Upload Fields -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Product Image (optional)
+                        </label>
+                        <div class="file-upload-container">
+                            {{ form.product_image }}
+                            <div class="file-upload-content">
+                                <i class="fas fa-cloud-upload-alt text-gray-400 text-xl mb-2"></i>
+                                <p class="text-sm font-medium text-gray-700">Upload product image</p>
+                                <p class="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                            </div>
+                        </div>
+                        {% if form.product_image.errors %}
+                        <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                            {{ form.product_image.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Expiry Label Image (optional)
+                        </label>
+                        <div class="file-upload-container">
+                            {{ form.expiry_label_image }}
+                            <div class="file-upload-content">
+                                <i class="fas fa-barcode text-gray-400 text-xl mb-2"></i>
+                                <p class="text-sm font-medium text-gray-700">Upload expiry label</p>
+                                <p class="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                            </div>
+                        </div>
+                        {% if form.expiry_label_image.errors %}
+                        <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                            {{ form.expiry_label_image.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Notes Field -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Notes (optional)
+                    </label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                    <div class="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded border border-red-200">
+                        {{ form.notes.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex flex-col sm:flex-row gap-6 pt-6 border-t border-gray-200">
+                <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center shadow-sm border border-green-600">
+                    <i class="fas fa-plus mr-2"></i>
+                    Add to Pantry
+                </button>
+                <a href="{% url 'pantry_dashboard' %}" class="flex-1 bg-white hover:bg-gray-50 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors text-center flex items-center justify-center border border-gray-300 shadow-sm">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Quick Tips -->
+    <div class="mt-8 mb-4 bg-blue-50 rounded-lg p-6 border border-blue-200">
+        <div class="flex items-start">
+            <i class="fas fa-lightbulb text-blue-500 mt-1 mr-3"></i>
+            <div>
+                <h3 class="font-semibold text-blue-900">Quick Tips</h3>
+                <ul class="text-sm text-blue-800 mt-2 space-y-1">
+                    <li>• Take photos of expiry labels for automatic date detection</li>
+                    <li>• Use consistent units (grams, milliliters, pieces) for better tracking</li>
+                    <li>• Fill in nutritional information for accurate recipe calculations</li>
+                    <li>• Add storage instructions to help maintain food freshness</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Form input styling */
+input, select, textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background-color: white;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Custom select dropdown styling */
+select {
+    appearance: none;
+    background-image: none;
+    padding-right: 2.5rem;
+}
+
+/* Remove any inline background images from Django form */
+select {
+    background-image: none !important;
+}
+
+/* File upload styling */
+.file-upload-container {
+    position: relative;
+    border: 1px dashed #d1d5db;
+    border-radius: 0.5rem;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    transition: all 0.2s;
+    background-color: #f9fafb;
+    cursor: pointer;
+}
+
+.file-upload-container:hover {
+    border-color: #10b981;
+    background-color: #f0fdf4;
+}
+
+.file-upload-container input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.file-upload-content {
+    pointer-events: none;
+}
+
+/* Error styling */
+.error {
+    border-color: #ef4444;
+}
+
+.error:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Nutritional info input styling */
+input[type="number"] {
+    text-align: center;
+}
+
+/* Section spacing improvements */
+.space-y-8 > * + * {
+    margin-top: 2rem;
+}
+
+.space-y-6 > * + * {
+    margin-top: 1.5rem;
+}
+
+/* Grid gap improvements */
+.gap-6 > * {
+    margin: 0;
+}
+
+.gap-4 > * {
+    margin: 0;
+}
+
+/* Fix dropdown arrow positioning */
+.relative .absolute {
+    top: 50%;
+    transform: translateY(-50%);
+    margin-top: 0.75rem;
+}
+</style>
+
+<script>
+// Enhance file input functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    
+    fileInputs.forEach(input => {
+        const container = input.closest('.file-upload-container');
+        
+        input.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                container.classList.add('border-green-400', 'bg-green-50');
+                container.classList.remove('border-gray-300', 'bg-gray-50');
+                
+                // Update text to show file name
+                const fileName = this.files[0].name;
+                const contentDiv = container.querySelector('.file-upload-content');
+                contentDiv.innerHTML = `
+                    <i class="fas fa-check-circle text-green-500 text-xl mb-2"></i>
+                    <p class="text-sm font-medium text-gray-700 truncate">${fileName}</p>
+                    <p class="text-xs text-gray-500 mt-1">Click to change</p>
+                `;
+            } else {
+                container.classList.remove('border-green-400', 'bg-green-50');
+                container.classList.add('border-gray-300', 'bg-gray-50');
+            }
+        });
+        
+        // Add drag and drop functionality
+        container.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            container.classList.add('border-green-400', 'bg-green-50');
+        });
+        
+        container.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            if (!container.contains(e.relatedTarget)) {
+                container.classList.remove('border-green-400', 'bg-green-50');
+            }
+        });
+        
+        container.addEventListener('drop', function(e) {
+            e.preventDefault();
+            if (e.dataTransfer.files.length) {
+                input.files = e.dataTransfer.files;
+                input.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+
+    // Add today's date as default for purchase date
+    const purchaseDateField = document.querySelector('input[type="date"][name="purchase_date"]');
+    if (purchaseDateField && !purchaseDateField.value) {
+        const today = new Date().toISOString().split('T')[0];
+        purchaseDateField.value = today;
+    }
+    
+    // Auto-set expiry date to 7 days from today if not set
+    const expiryDateField = document.querySelector('input[type="date"][name="expiry_date"]');
+    if (expiryDateField && !expiryDateField.value) {
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        expiryDateField.value = nextWeek.toISOString().split('T')[0];
+    }
+    
+    // Add error classes to form fields with errors
+    const errorFields = document.querySelectorAll('.errorlist');
+    errorFields.forEach(errorList => {
+        const field = errorList.closest('.space-y-6').querySelector('input, select, textarea');
+        if (field) {
+            field.classList.add('error');
+        }
+    });
+
+    // Auto-focus on name field
+    const nameField = document.querySelector('input[name="name"]');
+    if (nameField) {
+        nameField.focus();
+    }
+});
+</script>
+{% endblock %}

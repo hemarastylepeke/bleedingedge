@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load i18n %}
+{% load static tailwind_tags %}
+{% load static %}
+{% include 'core/includes/messages.html' %}
+
+<head>
+    {% tailwind_css %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoxUnite - Logout</title>
+</head>
+<body>
+    <div class="flex h-screen items-center justify-center w-full px-3">
+        <div class="flex flex-col gap-6 px-6 py-12 lg:px-8 w-full border border-slate-200 bg-white max-w-md rounded-lg">
+            <div class="mx-auto w-full max-w-sm text-center iyems-center justify-center">
+                <a href="{% url 'home' %}" class="inline-flex gap-2">
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-900 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/>
+                        </svg>
+                    </div>
+                    <span class="text-2xl font-bold text-blue-900">VoxUnite</span>
+                </a>
+            </div>
+            <h3 class="text-slate-700 text-sm text-center">Are your sure you want to sign out?</h3>
+            <form method="post" action="{% url 'account_logout' %}">
+                {% csrf_token %}
+                {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+                {% endif %}
+                <div class="flex flex-row justify-between">
+                    <button type="submit" class="bg-red-200/40 ease-in duration-300 hover:cursor-pointer hover:bg-red-100 px-4 py-2 text-red-500 text-sm rounded-md border border-red-500/50">Sign Out</button>
+                    <button type="button" onclick="window.history.back()" class="bg-slate-200/40 ease-in border border-slate-400 duration-300 hover:cursor-pointer hover:bg-slate-100 text-slate-600 text-sm rounded-md p-2">Go Back</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
