@@ -406,17 +406,10 @@ class Budget(models.Model):
         ('monthly', 'Monthly'),
     ]
     
-    CURRENCY_CHOICES = [
-        ('USD', 'USD'),
-        ('EUR', 'EUR'),
-        ('GBP', 'GBP'),
-        ('KES', 'KES'),
-    ]
-    
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     period = models.CharField(max_length=10, choices=PERIOD_CHOICES, default='weekly')
-    currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='USD')
+    currency = models.CharField(max_length=3, default='GBP')
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
     active = models.BooleanField(default=True)

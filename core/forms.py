@@ -127,7 +127,7 @@ class PantryItemForm(forms.ModelForm):
 class BudgetForm(forms.ModelForm):
     class Meta:
         model = Budget
-        fields = ['amount', 'period', 'currency', 'start_date', 'end_date', 'active']
+        fields = ['amount', 'period', 'start_date', 'end_date', 'active']  # Remove 'currency' from fields
         widgets = {
             'amount': forms.NumberInput(attrs={
                 'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors',
@@ -135,9 +135,6 @@ class BudgetForm(forms.ModelForm):
                 'min': '0'
             }),
             'period': forms.Select(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors appearance-none pr-10',
-            }),
-            'currency': forms.Select(attrs={
                 'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors appearance-none pr-10',
             }),
             'start_date': forms.DateInput(attrs={
@@ -153,6 +150,9 @@ class BudgetForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['end_date'].required = False
+        # Remove the currency field from the form
+        if 'currency' in self.fields:
+            del self.fields['currency']
 
     def clean(self):
         cleaned_data = super().clean()
@@ -163,6 +163,14 @@ class BudgetForm(forms.ModelForm):
             raise forms.ValidationError("End date cannot be before start date")
         
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # Always set currency to GBP
+        instance.currency = 'GBP'
+        if commit:
+            instance.save()
+        return instance
 
 
 class ShoppingListForm(forms.ModelForm):
