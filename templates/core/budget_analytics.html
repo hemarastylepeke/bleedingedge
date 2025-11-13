@@ -31,7 +31,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Total Allocated</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ total_allocated }} {{ budgets.0.currency|default:"USD" }}</p>
+                        <p class="text-2xl font-bold text-gray-900">£{{ total_allocated }}</p>
                     </div>
                 </div>
             </div>
@@ -45,7 +45,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Total Spent</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ total_spent }} {{ budgets.0.currency|default:"USD" }}</p>
+                        <p class="text-2xl font-bold text-gray-900">£{{ total_spent }}</p>
                     </div>
                 </div>
             </div>
@@ -78,7 +78,7 @@
                                  style="width: {% widthratio month.amount monthly_spending.0.amount 100 %}%"></div>
                         </div>
                     </div>
-                    <span class="font-medium text-gray-800 w-20 text-right">{{ month.amount }} {{ budgets.0.currency|default:"USD" }}</span>
+                    <span class="font-medium text-gray-800 w-20 text-right">£{{ month.amount }}</span>
                 </div>
                 {% endfor %}
             </div>
@@ -103,13 +103,13 @@
                         {% for budget in budgets %}
                         <tr class="border-b border-gray-100 hover:bg-gray-50">
                             <td class="py-3 px-4">
-                                <div class="font-medium text-gray-800">{{ budget.amount }} {{ budget.currency }}</div>
+                                <div class="font-medium text-gray-800">£{{ budget.amount }}</div>
                                 <div class="text-sm text-gray-600">{{ budget.start_date }} to {{ budget.end_date|default:"Ongoing" }}</div>
                             </td>
                             <td class="py-3 px-4">{{ budget.get_period_display }}</td>
-                            <td class="py-3 px-4 font-medium">{{ budget.amount }} {{ budget.currency }}</td>
-                            <td class="py-3 px-4">{{ budget.amount_spent }} {{ budget.currency }}</td>
-                            <td class="py-3 px-4 font-medium text-green-600">{{ budget.get_remaining_budget }} {{ budget.currency }}</td>
+                            <td class="py-3 px-4 font-medium">£{{ budget.amount }}</td>
+                            <td class="py-3 px-4">£{{ budget.amount_spent }}</td>
+                            <td class="py-3 px-4 font-medium text-green-600">£{{ budget.get_remaining_budget }}</td>
                             <td class="py-3 px-4">
                                 <div class="flex items-center">
                                     <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
