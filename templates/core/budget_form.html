@@ -21,8 +21,8 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-3">Budget Amount *</label>
                         <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none mt-3">
-                                <span class="text-gray-500 font-medium">£</span>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 font-medium text-lg">£</span>
                             </div>
                             {{ form.amount }}
                         </div>
@@ -38,7 +38,7 @@
                         <div class="relative">
                             <label class="block text-sm font-medium text-gray-700 mb-3">Budget Period *</label>
                             {{ form.period }}
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 mt-7">
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
@@ -148,9 +148,11 @@ input, select, textarea {
     font-size: 0.95rem;
 }
 
-/* Amount field with GBP symbol */
+/* Amount field with GBP symbol - FIXED POSITIONING */
 input[name="amount"] {
     padding-left: 2.5rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
 }
 
 input:focus, select:focus, textarea:focus {
@@ -210,7 +212,6 @@ input[type="checkbox"]:checked {
 .relative .absolute {
     top: 50%;
     transform: translateY(-50%);
-    margin-top: 0.75rem;
 }
 
 /* Add margin to form container to prevent inputs touching borders */
@@ -222,6 +223,11 @@ input[type="checkbox"]:checked {
 .container {
     padding-left: 1rem;
     padding-right: 1rem;
+}
+
+/* Ensure the pound symbol is properly centered vertically */
+.flex.items-center {
+    height: 100%;
 }
 </style>
 
