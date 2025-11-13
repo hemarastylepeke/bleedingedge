@@ -936,11 +936,12 @@ def edit_recipe_view(request, recipe_id):
     if request.method == 'POST':
         form = RecipeForm(request.POST, request.FILES, instance=recipe)
         if form.is_valid():
-            updated_recipe = form.save()
+            updated_recipe = form.save(commit=False)
             
             # Handle image upload
             if 'image' in request.FILES:
                 updated_recipe.image = request.FILES['image']
+                messages.info(request, 'Recipe image updated successfully!')
             
             updated_recipe.save()
             messages.success(request, f'Recipe "{updated_recipe.name}" updated successfully!')
