@@ -15,9 +15,9 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
-                    Create New Recipe
+                    Generate AI Recipes
                 </a>
-                <a href="{% url 'my_recipes' %}" class="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-blue-600 text-white font-semibold rounded-lg shadow-md transition-all duration-200">
+                <a href="{% url 'my_recipes' %}" class="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-all duration-200">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                     </svg>
@@ -71,9 +71,91 @@
             </div>
         </div>
 
+        <!-- Newly Generated AI Recipes Section -->
+        {% if newly_generated_recipes %}
+        <div class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Newly Generated AI Recipes</h2>
+                <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium animate-pulse">
+                    Just Created!
+                </span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {% for recipe in newly_generated_recipes %}
+                <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-purple-300 overflow-hidden relative">
+                    <!-- New Badge -->
+                    <div class="absolute top-4 right-4 z-10">
+                        <span class="px-2 py-1 bg-purple-600 text-white text-xs font-bold rounded-full shadow-lg animate-bounce">
+                            NEW
+                        </span>
+                    </div>
+                    
+                    <!-- Recipe Image -->
+                    {% if recipe.image %}
+                    <div class="h-48 overflow-hidden">
+                        <img src="{{ recipe.image.url }}" alt="{{ recipe.name }}" class="w-full h-full object-cover">
+                    </div>
+                    {% else %}
+                    <div class="h-48 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                        <svg class="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    {% endif %}
 
+                    <div class="p-6">
+                        <!-- Header -->
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-semibold text-gray-800 truncate">{{ recipe.name }}</h3>
+                            <span class="text-xs font-medium px-2 py-1 bg-purple-100 text-purple-800 rounded-full">AI</span>
+                        </div>
 
+                        <!-- Description -->
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ recipe.description|truncatewords:15 }}</p>
+
+                        <!-- Recipe Details -->
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center text-sm text-gray-600">
+                                <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                {{ recipe.prep_time }}min prep • {{ recipe.cook_time }}min cook
+                            </div>
+                            <div class="flex items-center text-sm text-gray-600">
+                                <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                {{ recipe.servings }} servings
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
+                                    {% if recipe.difficulty == 'easy' %}bg-green-100 text-green-800
+                                    {% elif recipe.difficulty == 'medium' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ recipe.get_difficulty_display }}
+                                </span>
+                                <span class="text-gray-600">{{ recipe.get_cuisine_display }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex space-x-2">
+                            <a href="{% url 'recipe_detail' recipe.id %}" 
+                               class="flex-1 bg-green-600 hover:bg-purple-700 text-white py-2 px-3 rounded-lg text-center transition-colors duration-200 text-sm font-medium">
+                                View Recipe
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- All Recipes Section -->
         {% if recipes %}
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">All Recipes</h2>
             <!-- Recipes Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {% for recipe in recipes %}
@@ -185,7 +267,7 @@
                         {% endif %}
                     </p>
                     <a href="{% url 'create_recipe' %}" class="inline-flex items-center px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow-md transition-colors duration-200">
-                        Create First Recipe
+                        Generate AI Recipes
                     </a>
                 </div>
             </div>

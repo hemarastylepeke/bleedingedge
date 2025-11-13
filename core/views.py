@@ -10,7 +10,7 @@ from django.db.models import Sum
 from .forms import PantryItemForm, BudgetForm, ShoppingListForm, ShoppingListItemForm, RecipeForm
 from django.db.models import Q
 from django.forms import formset_factory
-from core.services.recipe_suggestion_ai import generate_ai_recipe_from_openai
+from core.services.recipe_suggestion_ai import generate_ai_recipe_from_openai, generate_multiple_ai_recipes
 from core.services.ai_shopping_service import generate_ai_shopping_list, confirm_shopping_list, detect_and_record_food_waste
 from decimal import Decimal
 from django.db import transaction
@@ -783,17 +783,25 @@ def delete_shopping_list_view(request, list_id):
     return render(request, 'core/delete_shopping_list.html', context)
 
 #--------------------------------------------------RECIPE MANAGEMENT VIEWS-------------------------------------------------------------------------#
+# core/views.py
 @login_required(login_url='account_login')
 def recipe_list_view(request):
-    """
-    List all recipes with filtering and search
-    """
+    """Display all recipes with enhanced AI recipe handling"""
+    # Get all recipes
     recipes = Recipe.objects.all().order_by('-created_at')
     
-    # Filtering
+    # Get filters from request
+    search_query = request.GET.get('search', '')
     cuisine_filter = request.GET.get('cuisine', '')
     difficulty_filter = request.GET.get('difficulty', '')
-    search_query = request.GET.get('search', '')
+    
+    # Apply filters
+    if search_query:
+        recipes = recipes.filter(
+            Q(name__icontains=search_query) | 
+            Q(description__icontains=search_query) |
+            Q(dietary_tags__icontains=search_query)
+        )
     
     if cuisine_filter:
         recipes = recipes.filter(cuisine=cuisine_filter)
@@ -801,27 +809,32 @@ def recipe_list_view(request):
     if difficulty_filter:
         recipes = recipes.filter(difficulty=difficulty_filter)
     
-    if search_query:
-        recipes = recipes.filter(
-            Q(name__icontains=search_query) |
-            Q(description__icontains=search_query) |
-            Q(dietary_tags__icontains=search_query)
-        )
+    # Check if we have newly generated AI recipes in session
+    newly_generated_ids = request.session.get('newly_generated_recipe_ids', [])
+    newly_generated_recipes = []
     
-    # Statistics
-    total_recipes = recipes.count()
-    user_recipes = recipes.filter(created_by=request.user).count()
-    ai_recipes = recipes.filter(is_ai_generated=True).count()
+    if newly_generated_ids:
+        newly_generated_recipes = Recipe.objects.filter(id__in=newly_generated_ids)
+        # Clear the session after displaying
+        del request.session['newly_generated_recipe_ids']
+        request.session.modified = True
+    
+    # Calculate stats
+    total_recipes = Recipe.objects.count()
+    user_recipes = Recipe.objects.filter(created_by=request.user).count()
+    ai_recipes = Recipe.objects.filter(is_ai_generated=True).count()
     
     context = {
         'recipes': recipes,
-        'cuisine_filter': cuisine_filter,
-        'difficulty_filter': difficulty_filter,
-        'search_query': search_query,
         'total_recipes': total_recipes,
         'user_recipes': user_recipes,
         'ai_recipes': ai_recipes,
+        'search_query': search_query,
+        'cuisine_filter': cuisine_filter,
+        'difficulty_filter': difficulty_filter,
+        'newly_generated_recipes': newly_generated_recipes,  # Newly generated AI recipes
     }
+    
     return render(request, 'core/recipe_list.html', context)
 
 @login_required(login_url='account_login')
@@ -860,25 +873,51 @@ def recipe_detail_view(request, recipe_id):
 @login_required(login_url='account_login')
 def create_recipe_view(request):
     """
-    Generate a new recipe using AI based on:
+    Generate multiple new recipes using AI based on:
     - User profile (goal, allergies, budget)
     - Available pantry ingredients
     - Expiring items to reduce food waste
 
-    Replaces manual recipe creation.
+    Generates 3 distinct recipes at once.
     """
     if request.method == 'POST':
         try:
-            # Call the AI service to generate and save a recipe
-            recipe = generate_ai_recipe_from_openai(request.user)
-            messages.success(request, f'AI Recipe "{recipe.name}" generated successfully!')
-            return redirect('recipe_detail', recipe_id=recipe.id)
+            # Call the AI service to generate multiple recipes
+            recipes = generate_multiple_ai_recipes(request.user, num_recipes=3)
+            
+            if recipes:
+                # Store the IDs of newly generated recipes in session
+                request.session['newly_generated_recipe_ids'] = [recipe.id for recipe in recipes]
+                request.session.modified = True
+                
+                messages.success(request, f'Successfully generated {len(recipes)} AI recipes! They are highlighted below.')
+                return redirect('recipe_list')
+            else:
+                messages.error(request, "No recipes were generated. Please try again.")
+                return redirect('create_recipe')
+                
         except Exception as e:
-            messages.error(request, f"Error generating AI recipe: {str(e)}")
+            messages.error(request, f"Error generating AI recipes: {str(e)}")
             return redirect('create_recipe')
     
+    # Get pantry info to show user what's available
+    pantry_items = UserPantry.objects.filter(
+        user=request.user, 
+        status='active',
+        expiry_date__gte=timezone.now().date(), 
+        quantity__gt=0
+    ).order_by('expiry_date')
+    
+    expiring_soon = pantry_items.filter(
+        expiry_date__lte=timezone.now().date() + timedelta(days=3)
+    )
+    
     context = {
-        'title': 'Generate AI Recipe',
+        'title': 'Generate AI Recipes',
+        'pantry_items': pantry_items,
+        'expiring_soon': expiring_soon,
+        'pantry_count': pantry_items.count(),
+        'expiring_count': expiring_soon.count(),
     }
     return render(request, 'core/ai_generate_recipe.html', context)
 
