@@ -127,7 +127,7 @@ class PantryItemForm(forms.ModelForm):
 class BudgetForm(forms.ModelForm):
     class Meta:
         model = Budget
-        fields = ['amount', 'period', 'start_date', 'end_date', 'active']  # Remove 'currency' from fields
+        fields = ['amount', 'period', 'start_date', 'end_date', 'active']
         widgets = {
             'amount': forms.NumberInput(attrs={
                 'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors',
