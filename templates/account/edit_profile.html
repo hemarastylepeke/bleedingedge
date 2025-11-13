@@ -69,6 +69,7 @@
       </form>
     </div>
 
+
     <!-- Dietary Tab -->
     <div id="dietary-tab-content" class="tab-content hidden">
       <form method="post" class="space-y-6">
@@ -129,36 +130,195 @@
 
     <!-- Goals Tab -->
     <div id="goals-tab-content" class="tab-content hidden">
-      <form method="post" class="space-y-6">
-        {% csrf_token %}
-        <input type="hidden" name="form_type" value="goals">
+          <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="goals">
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-400 p-6 space-y-6">
-          <h3 class="text-xl font-semibold text-gray-800 mb-4">Your Goals</h3>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
+              <h3 class="text-xl font-semibold text-gray-800 mb-4">Your Goals</h3>
 
-          <!-- Render the Django form fields -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {% for field in goal_form %}
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">{{ field.label }}</label>
-                {{ field }}
-                {% if field.errors %}
-                  <p class="text-sm text-red-600 mt-1">{{ field.errors|first }}</p>
-                {% endif %}
+              <!-- Render the Django form fields -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for field in goal_form %}
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                      <p class="text-sm text-red-600 mt-1">{{ field.errors|first }}</p>
+                    {% endif %}
+                  </div>
+                {% endfor %}
               </div>
-            {% endfor %}
-          </div>
-        </div>
+            </div>
 
-        <div class="flex justify-end pt-6 border-t border-gray-200">
-          <button type="submit" class="px-8 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-all duration-200 shadow-lg">
-            Save Goals
-          </button>
+            <div class="flex justify-end pt-6 border-t border-gray-200">
+              <button type="submit" class="px-8 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-all duration-200 shadow-lg">
+                Save Goals
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
-    </div>
   </div>
 </div>
+
+<style>
+/* Enhanced input field styling for personal information */
+#profile-tab-content input:not([type="file"]),
+#profile-tab-content select,
+#profile-tab-content textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: white;
+    font-size: 14px;
+    color: #1f2937;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+#profile-tab-content input:not([type="file"]):focus,
+#profile-tab-content select:focus,
+#profile-tab-content textarea:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    background-color: #f9fafb;
+}
+
+#profile-tab-content input:not([type="file"]):hover,
+#profile-tab-content select:hover,
+#profile-tab-content textarea:hover {
+    border-color: #d1d5db;
+}
+
+/* Select dropdown styling */
+#profile-tab-content select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+/* Number input styling */
+#profile-tab-content input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+#profile-tab-content input[type="number"]::-webkit-outer-spin-button,
+#profile-tab-content input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Textarea specific styling */
+#profile-tab-content textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Placeholder styling */
+#profile-tab-content input::placeholder,
+#profile-tab-content textarea::placeholder {
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+/* Disabled state */
+#profile-tab-content input:disabled,
+#profile-tab-content select:disabled,
+#profile-tab-content textarea:disabled {
+    background-color: #f9fafb;
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
+/* Goals Tab Input Styling */
+#goals-tab-content input:not([type="checkbox"]),
+#goals-tab-content select,
+#goals-tab-content textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: white;
+    font-size: 14px;
+    color: #1f2937;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+#goals-tab-content input:not([type="checkbox"]):focus,
+#goals-tab-content select:focus,
+#goals-tab-content textarea:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    background-color: #f9fafb;
+}
+
+#goals-tab-content input:not([type="checkbox"]):hover,
+#goals-tab-content select:hover,
+#goals-tab-content textarea:hover {
+    border-color: #d1d5db;
+}
+
+/* Goals Tab Select Dropdown */
+#goals-tab-content select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+/* Goals Tab Date Input */
+#goals-tab-content input[type="date"] {
+    padding: 11px 16px;
+}
+
+/* Goals Tab Number Input */
+#goals-tab-content input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+#goals-tab-content input[type="number"]::-webkit-outer-spin-button,
+#goals-tab-content input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Goals Tab Checkbox Styling */
+#goals-tab-content input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #d1d5db;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#goals-tab-content input[type="checkbox"]:checked {
+    background-color: #10b981;
+    border-color: #10b981;
+}
+
+#goals-tab-content input[type="checkbox"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Goals Tab Placeholder */
+#goals-tab-content input::placeholder,
+#goals-tab-content textarea::placeholder {
+    color: #9ca3af;
+    font-size: 14px;
+}
+</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

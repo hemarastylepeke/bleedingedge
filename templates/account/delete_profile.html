@@ -48,7 +48,7 @@
           <img src="{{ profile.profile_image.url }}" alt="Profile" class="w-12 h-12 rounded-full object-cover">
         {% else %}
           <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-            <span class="text-gray-600 text-sm font-medium">{{ profile.first_name|first|default:profile.user.username|first|upper }}</span>
+            <span class="text-gray-600 text-sm font-medium">{{ profile.first_name|first|default:profile.user.email|first|upper }}</span>
           </div>
         {% endif %}
         <div>

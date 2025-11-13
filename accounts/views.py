@@ -25,7 +25,7 @@ def create_profile_view(request):
             profile.user = request.user
             profile.save()
             messages.success(request, 'Profile created successfully!')
-            return redirect('profile_page')
+            return redirect('create_profile')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
@@ -103,7 +103,7 @@ def edit_profile_view(request):
             if profile_form.is_valid():
                 profile_form.save()
                 messages.success(request, 'Personal information updated successfully!')
-                return redirect('profile_page')
+                return redirect('edit_profile')
             else:
                 messages.error(request, 'Please correct the errors in the personal information form.')
 

@@ -31,7 +31,7 @@
             {% else %}
               <div class="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
                 <span class="text-2xl font-bold text-gray-600">
-                  {{ profile.first_name|first|default:profile.user.username|first|upper }}
+                  {{ profile.first_name|first|default:profile.user.email|first|upper }}
                 </span>
               </div>
             {% endif %}

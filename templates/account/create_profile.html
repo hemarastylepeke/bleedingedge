@@ -133,7 +133,7 @@
         {% csrf_token %}
         <input type="hidden" name="form_type" value="goals">
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-400 p-6 space-y-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
           <h3 class="text-xl font-semibold text-gray-800 mb-4">Your Goals</h3>
 
           <!-- Render the Django form fields -->
@@ -159,6 +159,156 @@
     </div>
   </div>
 </div>
+
+<style>
+/* Personal Information Tab Input Styling */
+#profile-tab-content input:not([type="file"]),
+#profile-tab-content select,
+#profile-tab-content textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: white;
+    font-size: 14px;
+    color: #1f2937;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+#profile-tab-content input:not([type="file"]):focus,
+#profile-tab-content select:focus,
+#profile-tab-content textarea:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    background-color: #f9fafb;
+}
+
+#profile-tab-content input:not([type="file"]):hover,
+#profile-tab-content select:hover,
+#profile-tab-content textarea:hover {
+    border-color: #d1d5db;
+}
+
+/* Personal Information Select Dropdown */
+#profile-tab-content select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+/* Personal Information Number Input */
+#profile-tab-content input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+#profile-tab-content input[type="number"]::-webkit-outer-spin-button,
+#profile-tab-content input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Personal Information Textarea */
+#profile-tab-content textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Personal Information Placeholder */
+#profile-tab-content input::placeholder,
+#profile-tab-content textarea::placeholder {
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+/* User Goals Tab Input Styling */
+#goals-tab-content input:not([type="checkbox"]),
+#goals-tab-content select,
+#goals-tab-content textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: white;
+    font-size: 14px;
+    color: #1f2937;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+#goals-tab-content input:not([type="checkbox"]):focus,
+#goals-tab-content select:focus,
+#goals-tab-content textarea:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    background-color: #f9fafb;
+}
+
+#goals-tab-content input:not([type="checkbox"]):hover,
+#goals-tab-content select:hover,
+#goals-tab-content textarea:hover {
+    border-color: #d1d5db;
+}
+
+/* User Goals Select Dropdown */
+#goals-tab-content select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+/* User Goals Date Input */
+#goals-tab-content input[type="date"] {
+    padding: 11px 16px;
+}
+
+/* User Goals Number Input */
+#goals-tab-content input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+#goals-tab-content input[type="number"]::-webkit-outer-spin-button,
+#goals-tab-content input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* User Goals Checkbox Styling */
+#goals-tab-content input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #d1d5db;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#goals-tab-content input[type="checkbox"]:checked {
+    background-color: #10b981;
+    border-color: #10b981;
+}
+
+#goals-tab-content input[type="checkbox"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* User Goals Placeholder */
+#goals-tab-content input::placeholder,
+#goals-tab-content textarea::placeholder {
+    color: #9ca3af;
+    font-size: 14px;
+}
+</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
