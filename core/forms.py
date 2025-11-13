@@ -323,19 +323,21 @@ class RecipeForm(forms.ModelForm):
                 'placeholder': 'e.g., vegetarian, gluten-free, low-carb'
             }),
             'image': forms.FileInput(attrs={
-                'class': 'w-full opacity-0 cursor-pointer absolute inset-0'
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors',
+                'accept': 'image/*'  # Explicitly accept image files
             }),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Make nutritional fields optional
-        self.fields['total_calories'].required = False
-        self.fields['total_protein'].required = False
-        self.fields['total_carbs'].required = False
-        self.fields['total_fat'].required = False
-        self.fields['dietary_tags'].required = False
-        self.fields['image'].required = False
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            # Make nutritional fields optional
+            self.fields['total_calories'].required = False
+            self.fields['total_protein'].required = False
+            self.fields['total_carbs'].required = False
+            self.fields['total_fat'].required = False
+            self.fields['dietary_tags'].required = False
+            self.fields['image'].required = False
+            self.fields['image'].help_text = 'Upload a recipe image (optional)'
 
     def clean_prep_time(self):
         prep_time = self.cleaned_data.get('prep_time')
