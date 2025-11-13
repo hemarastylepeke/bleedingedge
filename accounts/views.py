@@ -11,54 +11,39 @@ from .forms import (
 )
 
 # Create profile view
-@login_required(login_url='account_login')
+@login_required
 def create_profile_view(request):
-    """
-    Allow a user to manually create a profile after account creation, including setting goals.
-    """
-    if UserProfile.objects.filter(user=request.user).exists():
+    # Check if user already has a profile
+    if hasattr(request.user, 'userprofile'):
         messages.info(request, 'You already have a profile.')
-        return redirect('profile_page')
-
+        return redirect('edit_profile')
+    
     if request.method == 'POST':
-        profile_form = CompleteUserProfileForm(request.POST, request.FILES)
-        goal_form = UserGoalForm(request.POST)  # no instance yet, new goal
-
-        if profile_form.is_valid() and goal_form.is_valid():
-            profile = profile_form.save(commit=False)
+        form = CompleteUserProfileForm(request.POST, request.FILES)
+        if form.is_valid():
+            profile = form.save(commit=False)
             profile.user = request.user
             profile.save()
-
-            # Save goal linked to profile
-            goal = goal_form.save(commit=False)
-            goal.user_profile = profile
-            goal.save()
-
-            messages.success(request, 'Your profile and goals were created successfully!')
+            messages.success(request, 'Profile created successfully!')
             return redirect('profile_page')
         else:
-            # Collect form errors and make them visible for debugging and UI
-            profile_errors = profile_form.errors.as_text()
-            goal_errors = goal_form.errors.as_text()
-
-            # Print to server console (visible in runserver logs)
-            print("Create profile form errors:", profile_errors)
-            print("Create goal form errors:", goal_errors)
-
-            # Surface errors via Django messages so they show in the template
-            if profile_errors:
-                messages.error(request, f'Profile errors: {profile_errors}')
-            if goal_errors:
-                messages.error(request, f'Goal errors: {goal_errors}')
-            if not profile_errors and not goal_errors:
-                messages.error(request, 'Please correct the errors below.')
+            messages.error(request, 'Please correct the errors below.')
     else:
-        profile_form = CompleteUserProfileForm()
-        goal_form = UserGoalForm()
-
+        form = CompleteUserProfileForm()
+    
+    # Create empty instances for the tabbed interface
+    profile_form = CompleteUserProfileForm()
+    dietary_form = DietaryRequirementsForm()
+    preferences_form = PreferencesForm()
+    goal_form = UserGoalForm()
+    
     context = {
-        'form': profile_form,
+        'form': form,
+        'profile_form': profile_form,
+        'dietary_form': dietary_form,
+        'preferences_form': preferences_form,
         'goal_form': goal_form,
+        'profile': None,  # No profile exists yet
     }
     return render(request, 'account/create_profile.html', context)
 
@@ -97,7 +82,18 @@ def edit_profile_view(request):
         return redirect('create_profile')
 
     # Get or create goal record linked to the profile
-    user_goal, created = UserGoal.objects.get_or_create(user_profile=profile, active=True)
+    user_goal, created = UserGoal.objects.get_or_create(
+        user_profile=profile, 
+        defaults={
+            'goal_type': 'maintain_weight',
+            'priority': 1,
+            'active': True
+        }
+    )
+
+    # Initialize forms at the beginning so they're always available
+    profile_form = UserProfileForm(instance=profile)
+    goal_form = UserGoalForm(instance=user_goal)
 
     if request.method == 'POST':
         form_type = request.POST.get('form_type')
@@ -107,7 +103,7 @@ def edit_profile_view(request):
             if profile_form.is_valid():
                 profile_form.save()
                 messages.success(request, 'Personal information updated successfully!')
-                return redirect('edit_profile')
+                return redirect('profile_page')
             else:
                 messages.error(request, 'Please correct the errors in the personal information form.')
 
@@ -133,15 +129,11 @@ def edit_profile_view(request):
                 goal.user_profile = profile
                 goal.save()
                 messages.success(request, 'Goals updated successfully!')
-                return redirect('edit_profile')
+                return redirect('profile_page')
             else:
                 messages.error(request, 'Please correct the errors in the goals form.')
 
-    else:
-        # Initialize forms for GET request
-        profile_form = UserProfileForm(instance=profile)
-        goal_form = UserGoalForm(instance=user_goal)
-
+    # Context is always available with both forms
     context = {
         'profile': profile,
         'profile_form': profile_form,
