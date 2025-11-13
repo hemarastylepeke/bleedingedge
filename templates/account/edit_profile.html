@@ -22,7 +22,7 @@
 
     <!-- Tabs Navigation -->
     <div class="mb-8 border-b border-gray-200">
-      <nav class="-mb-px flex space-x-8 overflow-x-auto">
+      <nav class="-mb-pix flex space-x-8 overflow-x-auto">
         <button class="tab-button py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap border-green-500 text-green-600" data-tab="profile">Personal Information</button>
         <button class="tab-button py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="dietary">Dietary Requirements</button>
         <button class="tab-button py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="preferences">Taste Preferences</button>
@@ -35,40 +35,86 @@
       <form method="post" enctype="multipart/form-data" class="space-y-6">
         {% csrf_token %}
         <input type="hidden" name="form_type" value="profile">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div class="col-span-1 flex flex-col items-center">
-            <div class="w-40 h-40 bg-gray-100 rounded-xl overflow-hidden border border-gray-300 flex items-center justify-center shadow-inner mb-4">
-              <img id="profile-preview" src="{% if profile.profile_image %}{{ profile.profile_image.url }}{% else %}{% static 'profile_images/default_profile_image.png' %}{% endif %}" class="object-cover w-full h-full">
-            </div>
-            <label class="w-full">
-              <span class="block text-sm font-semibold text-gray-700 text-center mb-2">Profile Image</span>
-              {{ profile_form.profile_image }}
-            </label>
-          </div>
-
-          <div class="col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {% for field in profile_form %}
-              {% if field.name != 'profile_image' %}
-                <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.errors %}
-                    <p class="text-sm text-red-600 mt-1">{{ field.errors|first }}</p>
-                  {% endif %}
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
+          <h3 class="text-xl font-semibold text-gray-800 mb-4">Personal Information</h3>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Image Section -->
+            <div class="col-span-1 flex flex-col items-center">
+              <div class="w-40 h-40 bg-gray-100 rounded-xl overflow-hidden border border-gray-300 flex items-center justify-center shadow-inner mb-6">
+                <img id="profile-preview" src="{% if profile.profile_image %}{{ profile.profile_image.url }}{% else %}{% static 'profile_images/default_profile_image.png' %}{% endif %}" class="object-cover w-full h-full">
+              </div>
+              
+              <!-- Styled File Input Container -->
+              <div class="w-full max-w-xs space-y-4">
+                <label class="block text-sm font-semibold text-gray-700 text-center mb-3">Profile Image</label>
+                
+                <!-- Custom File Input Styling -->
+                <div class="relative h-12 mb-4">
+                  {{ profile_form.profile_image }}
+                  <div class="absolute inset-0 flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-lg cursor-pointer transition-all duration-200 shadow-md border border-green-700">
+                    <i class="fas fa-camera mr-2"></i>
+                    <span class="text-sm font-medium">Change Image</span>
+                  </div>
                 </div>
-              {% endif %}
-            {% endfor %}
+                
+                <!-- File Information Section -->
+                <div class="space-y-3">
+                  <!-- Current File Info -->
+                  <div id="current-file-info" class="text-center space-y-3">
+                    {% if profile.profile_image %}
+                    <div class="text-xs text-gray-600 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                      <p class="font-medium text-gray-700 mb-1">Current Image:</p>
+                      <p id="current-file-name" class="truncate text-green-600 text-xs">
+                        {{ profile.profile_image.name|cut:"profile_images/" }}
+                      </p>
+                    </div>
+                    <button type="button" id="clear-image-btn" class="w-full text-xs text-white bg-red-500 hover:bg-red-600 font-medium transition-all duration-200 py-2 px-3 rounded-lg border border-red-600 shadow-sm">
+                      <i class="fas fa-times mr-1"></i>Clear Image
+                    </button>
+                    {% else %}
+                    <div class="text-xs text-gray-500 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                      <p>No image selected</p>
+                    </div>
+                    {% endif %}
+                  </div>
+                  
+                  <!-- Selected File Name Display -->
+                  <div id="selected-file-info" class="hidden text-center">
+                    <div class="text-xs text-gray-600 bg-green-50 rounded-lg p-3 border border-green-200">
+                      <p class="font-medium text-green-700 mb-1">Selected Image:</p>
+                      <p id="selected-file-name" class="truncate text-green-600 text-xs"></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Fields Section -->
+            <div class="col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
+              {% for field in profile_form %}
+                {% if field.name != 'profile_image' %}
+                  <div class="min-w-0">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                      <p class="text-sm text-red-600 mt-1">{{ field.errors|first }}</p>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
           </div>
         </div>
 
-        <div class="flex justify-end pt-6 border-t border-gray-200">
-          <button type="submit" class="px-8 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-all duration-200 shadow-lg">
+        <div class="flex justify-end pt-6">
+          <button type="submit" class="px-8 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold transition-all duration-200 shadow-lg border border-green-700">
             Save Personal Info
           </button>
         </div>
       </form>
     </div>
-
 
     <!-- Dietary Tab -->
     <div id="dietary-tab-content" class="tab-content hidden">
@@ -76,22 +122,26 @@
         {% csrf_token %}
         <input type="hidden" name="form_type" value="dietary">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
+          <h3 class="text-xl font-semibold text-gray-800 mb-4">Dietary Requirements</h3>
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">Allergies</label>
-            <textarea name="allergies" rows="4" class="w-full border border-gray-300 rounded-md p-3 focus:ring-green-500 focus:border-green-500">{{ profile.allergies }}</textarea>
+            <textarea name="allergies" rows="4" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200" placeholder="List any food allergies you have (e.g., peanuts, shellfish, dairy)">{{ profile.allergies }}</textarea>
+            <p class="text-xs text-gray-500 mt-1">Separate multiple allergies with commas</p>
           </div>
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">Dietary Restrictions</label>
-            <textarea name="dietary_restrictions" rows="4" class="w-full border border-gray-300 rounded-md p-3 focus:ring-green-500 focus:border-green-500">{{ profile.dietary_restrictions }}</textarea>
+            <textarea name="dietary_restrictions" rows="4" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200" placeholder="List any dietary restrictions (e.g., vegetarian, gluten-free, halal)">{{ profile.dietary_restrictions }}</textarea>
+            <p class="text-xs text-gray-500 mt-1">Separate multiple restrictions with commas</p>
           </div>
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">Disliked Ingredients</label>
-            <textarea name="disliked_ingredients" rows="4" class="w-full border border-gray-300 rounded-md p-3 focus:ring-green-500 focus:border-green-500">{{ profile.disliked_ingredients }}</textarea>
+            <textarea name="disliked_ingredients" rows="4" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200" placeholder="List any ingredients you don't like (e.g., cilantro, mushrooms, olives)">{{ profile.disliked_ingredients }}</textarea>
+            <p class="text-xs text-gray-500 mt-1">Separate multiple ingredients with commas</p>
           </div>
         </div>
 
-        <div class="flex justify-end pt-6 border-t border-gray-200">
-          <button type="submit" class="px-8 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-all duration-200 shadow-lg">
+        <div class="flex justify-end pt-6">
+          <button type="submit" class="px-8 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold transition-all duration-200 shadow-lg border border-green-700">
             Save Dietary Info
           </button>
         </div>
@@ -104,24 +154,26 @@
         {% csrf_token %}
         <input type="hidden" name="form_type" value="preferences">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
+          <h3 class="text-xl font-semibold text-gray-800 mb-4">Taste Preferences</h3>
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">Preferred Cuisines</label>
-            <textarea name="preferred_cuisines" rows="4" class="w-full border border-gray-300 rounded-md p-3 focus:ring-green-500 focus:border-green-500">{{ profile.preferred_cuisines }}</textarea>
+            <textarea name="preferred_cuisines" rows="4" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200" placeholder="List your favorite cuisines (e.g., Italian, Mexican, Thai, Indian)">{{ profile.preferred_cuisines }}</textarea>
+            <p class="text-xs text-gray-500 mt-1">Separate multiple cuisines with commas</p>
           </div>
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">Preferred Spice Level</label>
-            <select name="spice_level" class="w-full border border-gray-300 rounded-md p-3 focus:ring-green-500 focus:border-green-500">
-              <option value="">Select spice level</option>
-              <option value="mild" {% if profile.spice_level == 'mild' %}selected{% endif %}>Mild</option>
-              <option value="medium" {% if profile.spice_level == 'medium' %}selected{% endif %}>Medium</option>
-              <option value="spicy" {% if profile.spice_level == 'spicy' %}selected{% endif %}>Spicy</option>
-              <option value="very_spicy" {% if profile.spice_level == 'very_spicy' %}selected{% endif %}>Very Spicy</option>
+            <select name="spice_level" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
+              <option value="">Select your preferred spice level</option>
+              <option value="mild" {% if profile.spice_level == 'mild' %}selected{% endif %}>Mild - Little to no spice</option>
+              <option value="medium" {% if profile.spice_level == 'medium' %}selected{% endif %}>Medium - Moderate spice</option>
+              <option value="spicy" {% if profile.spice_level == 'spicy' %}selected{% endif %}>Spicy - I enjoy heat</option>
+              <option value="very_spicy" {% if profile.spice_level == 'very_spicy' %}selected{% endif %}>Very Spicy - I love intense heat</option>
             </select>
           </div>
         </div>
 
-        <div class="flex justify-end pt-6 border-t border-gray-200">
-          <button type="submit" class="px-8 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-all duration-200 shadow-lg">
+        <div class="flex justify-end pt-6">
+          <button type="submit" class="px-8 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold transition-all duration-200 shadow-lg border border-green-700">
             Save Preferences
           </button>
         </div>
@@ -130,34 +182,34 @@
 
     <!-- Goals Tab -->
     <div id="goals-tab-content" class="tab-content hidden">
-          <form method="post" class="space-y-6">
-            {% csrf_token %}
-            <input type="hidden" name="form_type" value="goals">
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="goals">
 
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
-              <h3 class="text-xl font-semibold text-gray-800 mb-4">Your Goals</h3>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
+          <h3 class="text-xl font-semibold text-gray-800 mb-4">Your Goals</h3>
 
-              <!-- Render the Django form fields -->
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {% for field in goal_form %}
-                  <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.errors %}
-                      <p class="text-sm text-red-600 mt-1">{{ field.errors|first }}</p>
-                    {% endif %}
-                  </div>
-                {% endfor %}
+          <!-- Render the Django form fields -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for field in goal_form %}
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                  <p class="text-sm text-red-600 mt-1">{{ field.errors|first }}</p>
+                {% endif %}
               </div>
-            </div>
-
-            <div class="flex justify-end pt-6 border-t border-gray-200">
-              <button type="submit" class="px-8 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-all duration-200 shadow-lg">
-                Save Goals
-              </button>
-            </div>
-          </form>
+            {% endfor %}
+          </div>
         </div>
+
+        <div class="flex justify-end pt-6">
+          <button type="submit" class="px-8 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold transition-all duration-200 shadow-lg border border-green-700">
+            Save Goals
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -165,77 +217,13 @@
 /* Enhanced input field styling for personal information */
 #profile-tab-content input:not([type="file"]),
 #profile-tab-content select,
-#profile-tab-content textarea {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    background-color: white;
-    font-size: 14px;
-    color: #1f2937;
-    transition: all 0.3s ease;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-}
-
-#profile-tab-content input:not([type="file"]):focus,
-#profile-tab-content select:focus,
-#profile-tab-content textarea:focus {
-    outline: none;
-    border-color: #10b981;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-    background-color: #f9fafb;
-}
-
-#profile-tab-content input:not([type="file"]):hover,
-#profile-tab-content select:hover,
-#profile-tab-content textarea:hover {
-    border-color: #d1d5db;
-}
-
-/* Select dropdown styling */
-#profile-tab-content select {
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-    background-position: right 12px center;
-    background-repeat: no-repeat;
-    background-size: 16px;
-    padding-right: 40px;
-}
-
-/* Number input styling */
-#profile-tab-content input[type="number"] {
-    -moz-appearance: textfield;
-}
-
-#profile-tab-content input[type="number"]::-webkit-outer-spin-button,
-#profile-tab-content input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-/* Textarea specific styling */
-#profile-tab-content textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
-/* Placeholder styling */
-#profile-tab-content input::placeholder,
-#profile-tab-content textarea::placeholder {
-    color: #9ca3af;
-    font-size: 14px;
-}
-
-/* Disabled state */
-#profile-tab-content input:disabled,
-#profile-tab-content select:disabled,
-#profile-tab-content textarea:disabled {
-    background-color: #f9fafb;
-    color: #6b7280;
-    cursor: not-allowed;
-}
-
-/* Goals Tab Input Styling */
+#profile-tab-content textarea,
+#dietary-tab-content input:not([type="file"]),
+#dietary-tab-content select,
+#dietary-tab-content textarea,
+#preferences-tab-content input:not([type="file"]),
+#preferences-tab-content select,
+#preferences-tab-content textarea,
 #goals-tab-content input:not([type="checkbox"]),
 #goals-tab-content select,
 #goals-tab-content textarea {
@@ -250,6 +238,15 @@
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
+#profile-tab-content input:not([type="file"]):focus,
+#profile-tab-content select:focus,
+#profile-tab-content textarea:focus,
+#dietary-tab-content input:not([type="file"]):focus,
+#dietary-tab-content select:focus,
+#dietary-tab-content textarea:focus,
+#preferences-tab-content input:not([type="file"]):focus,
+#preferences-tab-content select:focus,
+#preferences-tab-content textarea:focus,
 #goals-tab-content input:not([type="checkbox"]):focus,
 #goals-tab-content select:focus,
 #goals-tab-content textarea:focus {
@@ -259,13 +256,132 @@
     background-color: #f9fafb;
 }
 
+#profile-tab-content input:not([type="file"]):hover,
+#profile-tab-content select:hover,
+#profile-tab-content textarea:hover,
+#dietary-tab-content input:not([type="file"]):hover,
+#dietary-tab-content select:hover,
+#dietary-tab-content textarea:hover,
+#preferences-tab-content input:not([type="file"]):hover,
+#preferences-tab-content select:hover,
+#preferences-tab-content textarea:hover,
 #goals-tab-content input:not([type="checkbox"]):hover,
 #goals-tab-content select:hover,
 #goals-tab-content textarea:hover {
     border-color: #d1d5db;
 }
 
-/* Goals Tab Select Dropdown */
+/* Profile Image Upload Specific Styling */
+#profile-tab-content input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 10;
+}
+
+#profile-tab-content .relative {
+    position: relative;
+    height: 48px;
+    margin-bottom: 16px;
+}
+
+/* Clear Image Button Styling - Enhanced to match create page */
+#clear-image-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background-color: #ef4444;
+    color: white;
+    border: 1px solid #dc2626;
+    transition: all 0.3s ease;
+    width: 100%;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+#clear-image-btn:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Change Image Button Styling - Enhanced */
+#profile-tab-content .relative .absolute {
+    border-radius: 8px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+#profile-tab-content .relative .absolute:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* File Info Boxes */
+#current-file-info,
+#selected-file-info {
+    margin-top: 8px;
+}
+
+#current-file-info > div,
+#selected-file-info > div {
+    margin-bottom: 12px;
+}
+
+/* Image Preview Styling */
+#profile-preview {
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+/* Ensure proper spacing and prevent overflow */
+.col-span-1 {
+    padding-right: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.col-span-3 {
+    min-width: 0; /* Prevents flex item from overflowing */
+}
+
+.min-w-0 {
+    min-width: 0; /* Allows text truncation */
+}
+
+@media (min-width: 1024px) {
+    .col-span-1 {
+        padding-right: 2rem;
+        border-right: 1px solid #e5e7eb;
+        max-width: 300px; /* Fixed width to prevent expansion */
+    }
+    
+    .col-span-3 {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+/* File name truncation */
+#current-file-name,
+#selected-file-name {
+    word-break: break-all;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    display: block;
+}
+
+/* Select dropdown styling */
+#profile-tab-content select,
+#dietary-tab-content select,
+#preferences-tab-content select,
 #goals-tab-content select {
     appearance: none;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
@@ -275,48 +391,143 @@
     padding-right: 40px;
 }
 
-/* Goals Tab Date Input */
-#goals-tab-content input[type="date"] {
-    padding: 11px 16px;
-}
-
-/* Goals Tab Number Input */
+/* Number input styling */
+#profile-tab-content input[type="number"],
 #goals-tab-content input[type="number"] {
     -moz-appearance: textfield;
 }
 
+#profile-tab-content input[type="number"]::-webkit-outer-spin-button,
+#profile-tab-content input[type="number"]::-webkit-inner-spin-button,
 #goals-tab-content input[type="number"]::-webkit-outer-spin-button,
 #goals-tab-content input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
 
-/* Goals Tab Checkbox Styling */
+/* Textarea specific styling */
+#profile-tab-content textarea,
+#dietary-tab-content textarea,
+#preferences-tab-content textarea,
+#goals-tab-content textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Placeholder styling */
+#profile-tab-content input::placeholder,
+#profile-tab-content textarea::placeholder,
+#dietary-tab-content input::placeholder,
+#dietary-tab-content textarea::placeholder,
+#preferences-tab-content input::placeholder,
+#preferences-tab-content textarea::placeholder,
+#goals-tab-content input::placeholder,
+#goals-tab-content textarea::placeholder {
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+/* Disabled state */
+#profile-tab-content input:disabled,
+#profile-tab-content select:disabled,
+#profile-tab-content textarea:disabled,
+#dietary-tab-content input:disabled,
+#dietary-tab-content select:disabled,
+#dietary-tab-content textarea:disabled,
+#preferences-tab-content input:disabled,
+#preferences-tab-content select:disabled,
+#preferences-tab-content textarea:disabled,
+#goals-tab-content input:disabled,
+#goals-tab-content select:disabled,
+#goals-tab-content textarea:disabled {
+    background-color: #f9fafb;
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
+/* Goals Tab Date Input */
+#goals-tab-content input[type="date"] {
+    padding: 11px 16px;
+}
+
+/* Goals Tab Checkbox Styling - Enhanced to match create page */
 #goals-tab-content input[type="checkbox"] {
     width: 20px;
     height: 20px;
     border: 2px solid #d1d5db;
-    border-radius: 4px;
+    border-radius: 6px;
     background-color: white;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    position: relative;
 }
 
 #goals-tab-content input[type="checkbox"]:checked {
     background-color: #10b981;
     border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+#goals-tab-content input[type="checkbox"]:checked::before {
+    content: "✓";
+    position: absolute;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 #goals-tab-content input[type="checkbox"]:focus {
     outline: none;
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    border-color: #10b981;
 }
 
-/* Goals Tab Placeholder */
-#goals-tab-content input::placeholder,
-#goals-tab-content textarea::placeholder {
-    color: #9ca3af;
-    font-size: 14px;
+#goals-tab-content input[type="checkbox"]:hover {
+    border-color: #10b981;
+}
+
+/* Enhanced Save Buttons */
+button[type="submit"] {
+    transition: all 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Card styling for all sections */
+.bg-white {
+    background-color: white;
+}
+
+.rounded-xl {
+    border-radius: 12px;
+}
+
+.shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.border-gray-200 {
+    border-color: #e5e7eb;
+}
+
+.p-6 {
+    padding: 24px;
+}
+
+.space-y-6 > * + * {
+    margin-top: 24px;
+}
+
+/* Helper text styling for dietary and preferences */
+.text-xs.text-gray-500 {
+    margin-top: 4px;
+    font-style: italic;
 }
 </style>
 
@@ -324,7 +535,13 @@
 document.addEventListener('DOMContentLoaded', function() {
   const tabButtons = document.querySelectorAll('.tab-button');
   const tabContents = document.querySelectorAll('.tab-content');
+  const fileInput = document.querySelector('input[type="file"]');
+  const selectedFileInfo = document.getElementById('selected-file-info');
+  const selectedFileName = document.getElementById('selected-file-name');
+  const currentFileInfo = document.getElementById('current-file-info');
+  const clearImageBtn = document.getElementById('clear-image-btn');
 
+  // Tab functionality
   tabButtons.forEach(btn => {
     btn.addEventListener('click', function() {
       const target = this.dataset.tab;
@@ -343,6 +560,45 @@ document.addEventListener('DOMContentLoaded', function() {
       activeContent.classList.add('active');
     });
   });
+
+  // File input functionality
+  if (fileInput) {
+    fileInput.addEventListener('change', function(e) {
+      if (this.files && this.files[0]) {
+        const fileName = this.files[0].name;
+        selectedFileName.textContent = fileName;
+        selectedFileInfo.classList.remove('hidden');
+        
+        // Hide current file info when new file is selected
+        if (currentFileInfo) {
+          currentFileInfo.style.display = 'none';
+        }
+
+        // Preview image
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('profile-preview').src = e.target.result;
+        }
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+  }
+
+  // Clear image functionality
+  if (clearImageBtn) {
+    clearImageBtn.addEventListener('click', function() {
+      if (fileInput) {
+        fileInput.value = '';
+      }
+      document.getElementById('profile-preview').src = "{% static 'profile_images/default_profile_image.png' %}";
+      selectedFileInfo.classList.add('hidden');
+      
+      // Show current file info again
+      if (currentFileInfo) {
+        currentFileInfo.style.display = 'block';
+      }
+    });
+  }
 });
 </script>
 

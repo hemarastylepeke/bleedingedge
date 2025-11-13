@@ -143,51 +143,156 @@
         </div>
 
         <!-- User Goals Section -->
-        <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-          <svg class="w-5 h-5 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9-7-9-7-9 7 9 7z"/>
-          </svg>
-          Your Health & Nutrition Goals
-        </h3>
+        <div class="mb-10">
+          <h3 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Your Health & Nutrition Goals
+          </h3>
 
-        {% if user_goals %}
-        <div class="space-y-4 mb-6">
-          {% for goal in user_goals %}
-            <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-all duration-200">
-              <div class="flex justify-between items-center">
-                <div>
-                  <h4 class="text-lg font-semibold text-gray-800">{{ goal.get_goal_type_display }}</h4>
-                  <p class="text-sm text-gray-600 mt-1">
-                    Target: <span class="font-medium">{{ goal.target_value|default:"N/A" }}</span> by 
-                    <span class="text-gray-900 font-medium">{{ goal.target_date|date:"M d, Y" }}</span>
-                  </p>
-                  <p class="text-sm text-gray-600 mt-1">
-                    Current: {{ goal.current_value|default:0 }} • Priority: <span class="capitalize">{{ goal.priority }}</span>
-                  </p>
-                </div>
-                <div class="text-right">
-                  <p class="text-sm font-medium text-gray-500 mb-1">Progress</p>
-                  <div class="w-32 bg-gray-200 h-2 rounded-full">
-                    <div class="bg-green-600 h-2 rounded-full" style="width: {{ goal.progress_percentage }}%"></div>
+          {% if user_goals %}
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {% for goal in user_goals %}
+              <div class="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 goal-card">
+                <!-- Goal Header -->
+                <div class="flex justify-between items-start mb-4">
+                  <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center mr-3">
+                      <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 class="text-lg font-bold text-gray-800">{{ goal.get_goal_type_display }}</h4>
+                      <div class="flex items-center space-x-2 mt-1">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
+                          {% if goal.priority == 'high' %}bg-red-100 text-red-800
+                          {% elif goal.priority == 'medium' %}bg-yellow-100 text-yellow-800
+                          {% else %}bg-blue-100 text-blue-800{% endif %}">
+                          {{ goal.get_priority_display }} Priority
+                        </span>
+                        {% if goal.is_active %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Active
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          Inactive
+                        </span>
+                        {% endif %}
+                      </div>
+                    </div>
                   </div>
-                  <p class="text-xs text-gray-500 mt-1">{{ goal.progress_percentage }}%</p>
                 </div>
+
+                <!-- Progress Section -->
+                <div class="mb-4">
+                  <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-gray-700">Progress</span>
+                    <span class="text-sm font-bold text-emerald-600">{{ goal.progress_percentage }}%</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-3">
+                    <div class="bg-gradient-to-r from-emerald-500 to-green-500 h-3 rounded-full transition-all duration-500 ease-out progress-bar" 
+                         style="width: {{ goal.progress_percentage }}%"></div>
+                  </div>
+                </div>
+
+                <!-- Goal Details -->
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p class="text-gray-500">Current</p>
+                    <p class="font-semibold text-gray-800">{{ goal.current_value|default:"0" }}</p>
+                  </div>
+                  <div>
+                    <p class="text-gray-500">Target</p>
+                    <p class="font-semibold text-gray-800">{{ goal.target_value|default:"N/A" }}</p>
+                  </div>
+                  <div class="col-span-2">
+                    <p class="text-gray-500">Target Date</p>
+                    <p class="font-semibold text-gray-800 flex items-center">
+                      <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                      </svg>
+                      {{ goal.target_date|date:"M d, Y" }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Days Remaining -->
+                {% if goal.days_remaining > 0 %}
+                <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-blue-800">Days Remaining</span>
+                    <span class="text-lg font-bold text-blue-600">{{ goal.days_remaining }}</span>
+                  </div>
+                </div>
+                {% elif goal.days_remaining == 0 %}
+                <div class="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-sm font-medium text-yellow-800">Target date is today!</span>
+                  </div>
+                </div>
+                {% else %}
+                <div class="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
+                  <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-sm font-medium text-red-800">Target date passed</span>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Goals Summary -->
+          <div class="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl p-6 mb-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+              <div>
+                <p class="text-2xl font-bold text-emerald-600">{{ user_goals|length }}</p>
+                <p class="text-sm text-emerald-800 font-medium">Total Goals</p>
+              </div>
+              <div>
+                <p class="text-2xl font-bold text-green-600">{{ active_goals_count|default:"0" }}</p>
+                <p class="text-sm text-green-800 font-medium">Active Goals</p>
+              </div>
+              <div>
+                <p class="text-2xl font-bold text-blue-600">{{ completed_goals_count|default:"0" }}</p>
+                <p class="text-sm text-blue-800 font-medium">Completed</p>
+              </div>
+              <div>
+                <p class="text-2xl font-bold text-purple-600">{{ average_progress|default:"0" }}%</p>
+                <p class="text-sm text-purple-800 font-medium">Avg Progress</p>
               </div>
             </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="text-gray-600 italic mb-6">No goals set yet. Start your journey today!</p>
-      {% endif %}
+          </div>
 
+          {% else %}
+          <!-- Empty State -->
+          <div class="text-center py-12 bg-gradient-to-br from-gray-50 to-white border-2 border-dashed border-gray-300 rounded-xl">
+            <div class="max-w-md mx-auto">
+              <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <h4 class="text-xl font-semibold text-gray-800 mb-2">No Goals Set Yet</h4>
+              <p class="text-gray-600 mb-6">Start your health journey by setting meaningful goals</p>
+              <a href="{% url 'edit_profile' %}" class="inline-flex items-center px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Set Your First Goal
+              </a>
+            </div>
+          </div>
+          {% endif %}
 
-        <div class="flex justify-end">
-          <a href="" class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium transition-all duration-200">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            Set New Goal
-          </a>
         </div>
 
       </div>
@@ -202,10 +307,74 @@
   background-size: 200% 200%;
   animation: gradient 5s ease infinite;
 }
+
 @keyframes gradient {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+/* Enhanced animations and transitions */
+.goal-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.goal-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Progress bar animation */
+.progress-bar {
+  transition: width 1s ease-in-out;
+}
+
+/* Pulse animation for active goals */
+@keyframes pulse-active {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.active-goal {
+  animation: pulse-active 2s infinite;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #10b981, #059669);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Custom scrollbar for goals container */
+.goals-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.goals-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.goals-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.goals-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Smooth transitions for all interactive elements */
+a, button {
+  transition: all 0.3s ease;
+}
+
+/* Enhanced focus states */
+a:focus, button:focus {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
 }
 </style>
 
@@ -227,8 +396,29 @@ document.addEventListener('DOMContentLoaded', function() {
     element.addEventListener('click', function() {
       if (this.getAttribute('href') || this.type === 'submit') {
         this.classList.add('opacity-75', 'cursor-not-allowed');
+        setTimeout(() => {
+          this.classList.remove('opacity-75', 'cursor-not-allowed');
+        }, 2000);
       }
     });
+  });
+
+  // Add intersection observer for goal cards
+  const goalCards = document.querySelectorAll('.goal-card');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  goalCards.forEach(card => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    card.style.transition = 'all 0.6s ease-out';
+    observer.observe(card);
   });
 });
 </script>
