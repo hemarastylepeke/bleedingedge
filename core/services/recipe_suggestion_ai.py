@@ -59,15 +59,10 @@ def build_ai_recipe_context(user):
     return context
 
 
-def generate_ai_recipe_from_openai(user):
+def generate_multiple_ai_recipes(user, num_recipes=3):
     """
-    Generate an AI-powered recipe suggestion based on:
-    - Pantry ingredients (use what's available)
-    - Dietary requirements (avoid allergies)
-    - Goal (lose weight, build muscle, etc.)
-    - Budget
-    - Preferred cuisine
-    - Difficulty, time, and portion size
+    Generate multiple AI-powered recipe suggestions that use different pantry ingredients.
+    Ensures variety by using different main ingredients across recipes.
     """
     try:
         # Get user profile and preferences
@@ -122,9 +117,9 @@ def generate_ai_recipe_from_openai(user):
         goal_text = goal.goal_type.replace("_", " ") if goal else "general healthy eating"
         budget_text = f"{budget.amount} {budget.currency}" if budget else "reasonable budget"
 
-        # Comprehensive AI Prompt
+        # Comprehensive AI Prompt for multiple recipes
         prompt = f"""
-        You are an expert AI chef and nutritionist creating a personalized, balanced meal.
+        You are an expert AI chef and nutritionist creating {num_recipes} personalized, balanced meals.
         
         User Context:
         - Goal: {goal_text}
@@ -135,46 +130,58 @@ def generate_ai_recipe_from_openai(user):
         - Recently cooked recipes: {list(recent_recipes)}
 
         Your job:
-        1. Use pantry ingredients as much as possible (especially those expiring soon).
-        2. Avoid ingredients the user is allergic to.
-        3. Suggest a recipe suitable for 1-2 servings.
-        4. Stay within the user's budget range when suggesting new ingredients.
-        5. Choose a cuisine from the user's preferences (or any suitable one if none).
-        6. Include difficulty level (easy, medium, hard) and total cooking time (prep + cook).
-        7. The recipe must align with the user's goal — e.g., high protein for muscle gain, low carb for weight loss.
-        8. Avoid repeating recipes from the recent list.
-        9. Provide accurate nutritional information based on ingredients used.
+        Create {num_recipes} DISTINCT recipes that:
+        1. Use DIFFERENT main ingredients from the pantry (e.g., if chicken and beef are available, use each in separate recipes)
+        2. Prioritize ingredients that are expiring soon
+        3. Avoid ingredients the user is allergic to
+        4. Suggest recipes suitable for 1-2 servings
+        5. Stay within the user's budget range when suggesting new ingredients
+        6. Choose diverse cuisines from the user's preferences
+        7. Include varying difficulty levels and cooking times across recipes
+        8. Each recipe must align with the user's goal
+        9. Avoid repeating recipes from the recent list
+        10. Provide accurate nutritional information
 
         Return ONLY valid JSON structured as:
         {{
-            "name": "Recipe Name",
-            "description": "Brief appetizing summary",
-            "cuisine": "kenyan | italian | mexican | asian | indian | mediterranean | american | french | thai | chinese | japanese | other",
-            "difficulty": "easy | medium | hard",
-            "prep_time": number (in minutes),
-            "cook_time": number (in minutes),
-            "servings": number,
-            "ingredients": [
-                {{"name": "IngredientName", "quantity": number, "unit": "g/ml/pieces/tbsp/tsp"}}
-            ],
-            "instructions": "Step 1. Do this...\\nStep 2. Then do that...\\nStep 3. Finally...",
-            "total_calories": number,
-            "total_protein": number (in grams),
-            "total_carbs": number (in grams),
-            "total_fat": number (in grams),
-            "dietary_tags": "comma-separated tags like vegetarian, gluten-free, high-protein, low-carb"
+            "recipes": [
+                {{
+                    "name": "Recipe Name 1",
+                    "description": "Brief appetizing summary",
+                    "cuisine": "kenyan | italian | mexican | asian | indian | mediterranean | american | french | thai | chinese | japanese | other",
+                    "difficulty": "easy | medium | hard",
+                    "prep_time": number (in minutes),
+                    "cook_time": number (in minutes),
+                    "servings": number,
+                    "ingredients": [
+                        {{"name": "IngredientName", "quantity": number, "unit": "g/ml/pieces/tbsp/tsp"}}
+                    ],
+                    "instructions": "Step 1. Do this...\\nStep 2. Then do that...\\nStep 3. Finally...",
+                    "total_calories": number,
+                    "total_protein": number (in grams),
+                    "total_carbs": number (in grams),
+                    "total_fat": number (in grams),
+                    "dietary_tags": "comma-separated tags like vegetarian, gluten-free, high-protein, low-carb",
+                    "main_ingredients": ["primary ingredient 1", "primary ingredient 2"]
+                }},
+                ... more recipes ...
+            ]
         }}
 
-        Important: Only use ingredients that exist in standard kitchens or can be easily purchased.
+        Important: 
+        - Each recipe should focus on different main ingredients from the pantry
+        - Use expiring ingredients first
+        - Ensure variety in cuisine types and cooking methods
+        - Only use ingredients that exist in standard kitchens or can be easily purchased
         """
 
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a professional AI chef focused on personalized, healthy meal planning. Return only valid JSON."},
+                {"role": "system", "content": f"You are a professional AI chef focused on creating {num_recipes} diverse, personalized meal plans. Return only valid JSON."},
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.55,
+            temperature=0.7,  # Higher temperature for more variety
         )
 
         ai_text = response.choices[0].message.content.strip()
@@ -184,74 +191,84 @@ def generate_ai_recipe_from_openai(user):
         if not match:
             raise ValueError("No JSON found in AI response")
             
-        recipe_json = json.loads(match.group())
-
-        # Create Recipe in DB
-        recipe = Recipe.objects.create(
-            name=recipe_json.get("name", f"AI Recipe {timezone.now().strftime('%Y%m%d%H%M')}"),
-            description=recipe_json.get("description", "A delicious AI-generated recipe"),
-            cuisine=recipe_json.get("cuisine", "other"),
-            difficulty=recipe_json.get("difficulty", "medium"),
-            prep_time=recipe_json.get("prep_time", 15),
-            cook_time=recipe_json.get("cook_time", 25),
-            servings=recipe_json.get("servings", 2),
-            instructions=recipe_json.get("instructions", ""),
-            total_calories=recipe_json.get("total_calories", 0),
-            total_protein=recipe_json.get("total_protein", 0),
-            total_carbs=recipe_json.get("total_carbs", 0),
-            total_fat=recipe_json.get("total_fat", 0),
-            dietary_tags=recipe_json.get("dietary_tags", ""),
-            created_by=user,
-            is_ai_generated=True,
-        )
-
-        # Link ingredients to recipe through RecipeIngredient
-        # Note: For AI-generated recipes, we're creating ingredient references
-        # that may not exist in pantry yet. These will be linked when users
-        # actually have these items in their pantry.
-        for ing_data in recipe_json.get("ingredients", []):
-            name = ing_data.get("name", "").strip()
-            quantity = ing_data.get("quantity", 0)
-            unit = ing_data.get("unit", "g")
-            
-            if not name:
-                continue
-                
-            # Try to find matching pantry item, or create a reference
-            pantry_item = UserPantry.objects.filter(
-                user=user,
-                name__iexact=name
-            ).first()
-            
-            if not pantry_item:
-                # Create a placeholder pantry item for the recipe
-                # This won't be added to user's actual pantry
-                pantry_item = UserPantry.objects.create(
-                    user=user,
-                    name=name,
-                    category='other',
-                    quantity=0,  # Not actually in pantry
-                    unit=unit,
-                    purchase_date=timezone.now().date(),
-                    expiry_date=timezone.now().date() + timedelta(days=30),
-                    status='active',
-                    detection_source='manual'
-                )
-            
-            # Create RecipeIngredient link
-            RecipeIngredient.objects.create(
-                recipe=recipe,
-                pantry_item=pantry_item,
-                quantity=quantity,
-                unit=unit,
-                optional=False
+        recipes_data = json.loads(match.group())
+        recipes_list = recipes_data.get("recipes", [])
+        
+        created_recipes = []
+        
+        for recipe_data in recipes_list:
+            # Create Recipe in DB
+            recipe = Recipe.objects.create(
+                name=recipe_data.get("name", f"AI Recipe {timezone.now().strftime('%Y%m%d%H%M%S')}"),
+                description=recipe_data.get("description", "A delicious AI-generated recipe"),
+                cuisine=recipe_data.get("cuisine", "other"),
+                difficulty=recipe_data.get("difficulty", "medium"),
+                prep_time=recipe_data.get("prep_time", 15),
+                cook_time=recipe_data.get("cook_time", 25),
+                servings=recipe_data.get("servings", 2),
+                instructions=recipe_data.get("instructions", ""),
+                total_calories=recipe_data.get("total_calories", 0),
+                total_protein=recipe_data.get("total_protein", 0),
+                total_carbs=recipe_data.get("total_carbs", 0),
+                total_fat=recipe_data.get("total_fat", 0),
+                dietary_tags=recipe_data.get("dietary_tags", ""),
+                created_by=user,
+                is_ai_generated=True,
             )
 
-        # Calculate nutrition based on linked pantry items
-        recipe.calculate_nutrition()
-        
-        return recipe
+            # Link ingredients to recipe through RecipeIngredient
+            for ing_data in recipe_data.get("ingredients", []):
+                name = ing_data.get("name", "").strip()
+                quantity = ing_data.get("quantity", 0)
+                unit = ing_data.get("unit", "g")
+                
+                if not name:
+                    continue
+                    
+                # Try to find matching pantry item, or create a reference
+                pantry_item = UserPantry.objects.filter(
+                    user=user,
+                    name__iexact=name
+                ).first()
+                
+                if not pantry_item:
+                    # Create a placeholder pantry item for the recipe
+                    pantry_item = UserPantry.objects.create(
+                        user=user,
+                        name=name,
+                        category='other',
+                        quantity=0,  # Not actually in pantry
+                        unit=unit,
+                        purchase_date=timezone.now().date(),
+                        expiry_date=timezone.now().date() + timedelta(days=30),
+                        status='active',
+                        detection_source='manual'
+                    )
+                
+                # Create RecipeIngredient link
+                RecipeIngredient.objects.create(
+                    recipe=recipe,
+                    pantry_item=pantry_item,
+                    quantity=quantity,
+                    unit=unit,
+                    optional=False
+                )
+
+            # Calculate nutrition based on linked pantry items
+            recipe.calculate_nutrition()
+            created_recipes.append(recipe)
+
+        return created_recipes
 
     except Exception as e:
-        print(f"Error generating AI recipe: {e}")
-        return None
+        print(f"Error generating AI recipes: {e}")
+        return []
+
+
+def generate_ai_recipe_from_openai(user):
+    """
+    Legacy function that generates a single recipe.
+    Now calls the multiple recipe function and returns the first one.
+    """
+    recipes = generate_multiple_ai_recipes(user, 1)
+    return recipes[0] if recipes else None
