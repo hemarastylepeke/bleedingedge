@@ -267,8 +267,7 @@ def generate_multiple_ai_recipes(user, num_recipes=3):
 
 def generate_ai_recipe_from_openai(user):
     """
-    Legacy function that generates a single recipe.
-    Now calls the multiple recipe function and returns the first one.
+    Call multiple recipe generator and return a single recipe.
     """
     recipes = generate_multiple_ai_recipes(user, 1)
     return recipes[0] if recipes else None
