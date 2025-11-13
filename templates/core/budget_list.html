@@ -51,7 +51,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Total Allocated</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ total_amount_allocated }} {{ budgets.0.currency|default:"GBP" }}</p>
+                        <p class="text-2xl font-bold text-gray-900">€{{ total_amount_allocated }}</p>
                     </div>
                 </div>
             </div>
@@ -65,7 +65,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Total Spent</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ total_amount_spent }} {{ budgets.0.currency|default:"GBP" }}</p>
+                        <p class="text-2xl font-bold text-gray-900">€{{ total_amount_spent }}</p>
                     </div>
                 </div>
             </div>
@@ -81,7 +81,7 @@
                         <p class="text-sm font-medium text-gray-600">Active Budget</p>
                         <p class="text-lg font-bold text-gray-900">
                             {% if active_budget %}
-                                {{ active_budget.amount }} {{ active_budget.currency }}
+                                €{{ active_budget.amount }}
                             {% else %}
                                 None
                             {% endif %}
@@ -100,7 +100,7 @@
                         <!-- Header -->
                         <div class="flex justify-between items-start mb-4">
                             <div>
-                                <h3 class="text-xl font-semibold text-gray-800">{{ budget.amount }} {{ budget.currency }}</h3>
+                                <h3 class="text-xl font-semibold text-gray-800">€{{ budget.amount }}</h3>
                                 <p class="text-gray-600 text-sm">{{ budget.get_period_display }} Budget</p>
                             </div>
                             {% if budget.active %}
@@ -113,7 +113,7 @@
                         <!-- Progress Bar -->
                         <div class="mb-4">
                             <div class="flex justify-between text-sm text-gray-600 mb-2">
-                                <span>Spent: {{ budget.amount_spent }} {{ budget.currency }}</span>
+                                <span>Spent: €{{ budget.amount_spent }}</span>
                                 <span>{{ budget.get_spending_percentage|floatformat:0 }}%</span>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2">
@@ -130,7 +130,7 @@
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">Remaining:</span>
-                                <span class="font-medium text-green-600">{{ budget.get_remaining_budget }} {{ budget.currency }}</span>
+                                <span class="font-medium text-green-600">€{{ budget.get_remaining_budget }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">Status:</span>
