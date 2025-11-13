@@ -15,7 +15,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Total Cost Wasted</p>
-                        <p class="text-2xl font-bold text-gray-800 mt-2">{{ total_wasted_cost }} KES</p>
+                        <p class="text-2xl font-bold text-gray-800 mt-2">£{{ total_wasted_cost }}</p>
                     </div>
                     <div class="bg-red-100 p-3 rounded-full">
                         <i class="fas fa-money-bill-wave text-red-600 text-xl"></i>
@@ -119,7 +119,7 @@
                                 {{ record.quantity_wasted }} {{ record.unit }}
                             </td>
                             <td class="py-3 px-4">
-                                <span class="font-semibold text-red-600">{{ record.cost }} KES</span>
+                                <span class="font-semibold text-red-600">£{{ record.cost }}</span>
                             </td>
                             <td class="py-3 px-4 text-sm text-gray-500">
                                 {{ record.waste_date }}
