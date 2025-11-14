@@ -1,0 +1,321 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ pantry_item.name }} - Pantry Pilot{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8">
+    <div class="container mx-auto px-4 max-w-6xl">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div class="flex-1">
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">{{ pantry_item.name }}</h1>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                        {{ pantry_item.get_category_display }}
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                        {% if pantry_item.status == 'active' %}bg-green-100 text-green-800
+                        {% elif pantry_item.status == 'consumed' %}bg-gray-100 text-gray-800
+                        {% elif pantry_item.status == 'wasted' %}bg-red-100 text-red-800
+                        {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                        {{ pantry_item.get_status_display }}
+                    </span>
+                    {% if pantry_item.is_expiring_soon %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        Expiring Soon
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex gap-2 mt-4 md:mt-0">
+                <a href="{% url 'edit_pantry_item' pantry_item.id %}" 
+                   class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
+                    Edit
+                </a>
+                <a href="{% url 'pantry_list' %}" 
+                   class="bg-green-600 hover:bg-green-800 text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
+                    Back to Pantry
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Images and Basic Info -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Images Section -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Product Image -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="h-64 bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center">
+                            {% if pantry_item.product_image %}
+                                <img src="{{ pantry_item.product_image.url }}" alt="{{ pantry_item.name }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <div class="text-center p-6">
+                                    <i class="fas fa-image text-gray-400 text-4xl mb-3"></i>
+                                    <p class="text-gray-500 text-sm">No product image available</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="p-4 bg-gray-50 border-t border-gray-200">
+                            <h3 class="font-semibold text-gray-800 text-center">Product Image</h3>
+                        </div>
+                    </div>
+
+                    <!-- Expiry Label Image -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="h-64 bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center">
+                            {% if pantry_item.expiry_label_image %}
+                                <img src="{{ pantry_item.expiry_label_image.url }}" alt="Expiry label for {{ pantry_item.name }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <div class="text-center p-6">
+                                    <i class="fas fa-barcode text-gray-400 text-4xl mb-3"></i>
+                                    <p class="text-gray-500 text-sm">No expiry label image</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="p-4 bg-gray-50 border-t border-gray-200">
+                            <h3 class="font-semibold text-gray-800 text-center">Expiry Label</h3>
+                            {% if pantry_item.detected_expiry_text %}
+                                <p class="text-xs text-gray-600 text-center mt-1">Detected: {{ pantry_item.detected_expiry_text }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Basic Information -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Basic Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">Quantity</label>
+                                <p class="text-lg font-semibold text-gray-800">{{ pantry_item.quantity }} {{ pantry_item.unit }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">Purchase Date</label>
+                                <p class="text-lg font-semibold text-gray-800">{{ pantry_item.purchase_date }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">Price</label>
+                                <p class="text-lg font-semibold text-gray-800">
+                                    {% if pantry_item.price %}
+                                        £{{ pantry_item.price }}
+                                    {% else %}
+                                        <span class="text-gray-400">Not set</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">Expiry Date</label>
+                                <p class="text-lg font-semibold {% if pantry_item.is_expiring_soon %}text-red-600{% else %}text-gray-800{% endif %}">
+                                    {{ pantry_item.expiry_date }}
+                                    {% if pantry_item.days_until_expiry >= 0 %}
+                                        <span class="text-sm font-normal text-gray-600">
+                                            ({{ pantry_item.days_until_expiry }} days remaining)
+                                        </span>
+                                    {% else %}
+                                        <span class="text-sm font-normal text-red-600">
+                                            (Expired {{ pantry_item.days_until_expiry }} days ago)
+                                        </span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">Barcode</label>
+                                <p class="text-lg font-semibold text-gray-800">
+                                    {% if pantry_item.barcode %}
+                                        {{ pantry_item.barcode }}
+                                    {% else %}
+                                        <span class="text-gray-400">Not set</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">Detection Source</label>
+                                <p class="text-lg font-semibold text-gray-800 capitalize">{{ pantry_item.detection_source }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Storage Instructions -->
+                {% if pantry_item.storage_instructions %}
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Storage Instructions</h2>
+                    <p class="text-gray-700 leading-relaxed">{{ pantry_item.storage_instructions }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Notes -->
+                {% if pantry_item.notes %}
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Notes</h2>
+                    <p class="text-gray-700 leading-relaxed">{{ pantry_item.notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Column - Sidebar -->
+            <div class="space-y-6">
+                <!-- Nutritional Information -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Nutritional Information</h3>
+                    <p class="text-sm text-gray-600 mb-4">Per 100g of product</p>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Calories:</span>
+                            <span class="font-medium text-lg">{{ pantry_item.calories|default:"0" }} cal</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Protein:</span>
+                            <span class="font-medium">{{ pantry_item.protein|default:"0" }}g</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Carbohydrates:</span>
+                            <span class="font-medium">{{ pantry_item.carbs|default:"0" }}g</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Fat:</span>
+                            <span class="font-medium">{{ pantry_item.fat|default:"0" }}g</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Fiber:</span>
+                            <span class="font-medium">{{ pantry_item.fiber|default:"0" }}g</span>
+                        </div>
+                    </div>
+
+                    <!-- Current Quantity Nutritional Info -->
+                    {% if nutritional_info %}
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <h4 class="font-semibold text-gray-800 mb-3">For Current Quantity ({{ pantry_item.quantity }}{{ pantry_item.unit }})</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Total Calories:</span>
+                                <span class="font-medium">{{ nutritional_info.calories|floatformat:1 }} cal</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Total Protein:</span>
+                                <span class="font-medium">{{ nutritional_info.protein|floatformat:1 }}g</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Total Carbs:</span>
+                                <span class="font-medium">{{ nutritional_info.carbs|floatformat:1 }}g</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Total Fat:</span>
+                                <span class="font-medium">{{ nutritional_info.fat|floatformat:1 }}g</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Image hover effects */
+img {
+    transition: transform 0.3s ease;
+}
+
+img:hover {
+    transform: scale(1.02);
+}
+
+/* Status badge animations */
+@keyframes pulse-warning {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.bg-orange-100 {
+    animation: pulse-warning 2s infinite;
+}
+
+/* Smooth transitions for all interactive elements */
+a, button {
+    transition: all 0.3s ease;
+}
+
+/* Card hover effects */
+.bg-white {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bg-white:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add confirmation for destructive actions
+    const wasteButtons = document.querySelectorAll('form[action*="mark_item_wasted"] button');
+    wasteButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (!confirm('Are you sure you want to mark this item as wasted? This will record it in your food waste analytics.')) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // Add image zoom functionality
+    const images = document.querySelectorAll('img');
+    images.forEach(img => {
+        img.addEventListener('click', function() {
+            // Create modal for image zoom
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="max-w-4xl max-h-full p-4">
+                    <img src="${this.src}" alt="${this.alt}" class="max-w-full max-h-full object-contain">
+                    <button class="absolute top-4 right-4 text-white text-2xl bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Close modal on button click or background click
+            const closeBtn = modal.querySelector('button');
+            closeBtn.addEventListener('click', () => modal.remove());
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        });
+    });
+
+    // Add copy barcode functionality
+    const barcodeElement = document.querySelector('p:contains("Barcode")').nextElementSibling;
+    if (barcodeElement && !barcodeElement.textContent.includes('Not set')) {
+        barcodeElement.style.cursor = 'pointer';
+        barcodeElement.title = 'Click to copy barcode';
+        barcodeElement.addEventListener('click', function() {
+            const barcode = this.textContent.trim();
+            navigator.clipboard.writeText(barcode).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 2000);
+            });
+        });
+    }
+});
+</script>
+</div>
+{% endblock %}
