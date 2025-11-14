@@ -1005,6 +1005,10 @@ def food_waste_analytics_view(request):
     total_wasted_cost = waste_records.aggregate(Sum('cost'))['cost__sum'] or 0
     total_wasted_qty = waste_records.aggregate(Sum('quantity_wasted'))['quantity_wasted__sum'] or 0
 
+    # Format to 2 decimal places
+    if total_wasted_cost:
+        total_wasted_cost = round(float(total_wasted_cost), 2)
+
     by_reason = (
         waste_records.values('reason')
         .annotate(total=Sum('quantity_wasted'))
