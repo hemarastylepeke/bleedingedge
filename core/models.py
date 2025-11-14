@@ -376,30 +376,6 @@ class FoodWasteRecord(models.Model):
         return f"{self.user.username} - {self.pantry_item.name} waste"
 
 
-class ImageProcessingJob(models.Model):
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('processing', 'Processing'),
-        ('completed', 'Completed'),
-        ('failed', 'Failed'),
-    ]
-    
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='processing_jobs/')
-    job_type = models.CharField(max_length=20, choices=[('expiry', 'Expiry Date'), ('ingredient', 'Ingredient ID')])
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    
-    detected_text = models.TextField(blank=True)
-    processed_data = models.TextField(blank=True)
-    error_message = models.TextField(blank=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    processed_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-
 class Budget(models.Model):
     PERIOD_CHOICES = [
         ('weekly', 'Weekly'),
