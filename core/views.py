@@ -339,7 +339,7 @@ def pantry_item_detail_view(request, item_id):
         'pantry_item': pantry_item,
         'nutritional_info': nutritional_info,
     }
-    return render(request, 'core/pantry_item_detail.html', context)
+    return render(request, 'core/pantry_detail.html', context)
 
 #-----------------------------------------------------BUDGET MANAGEMENT VIEWS-------------------------------------------------------------------------#
 @login_required(login_url='account_login')

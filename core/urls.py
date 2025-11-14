@@ -11,6 +11,7 @@ urlpatterns = [
     path('pantry/add/', views.add_pantry_item_view, name='add_pantry_item'),
     path('pantry/edit/<int:item_id>/', views.edit_pantry_item_view, name='edit_pantry_item'),
     path('pantry/delete/<int:item_id>/', views.delete_pantry_item_view, name='delete_pantry_item'),
+    path('pantry/<int:item_id>/', views.pantry_item_detail_view, name='pantry_detail'),
 
     # Budget management URLs
     path('budgets/', views.budget_list_view, name='budget_list'),
