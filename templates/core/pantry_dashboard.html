@@ -61,7 +61,7 @@
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="text-gray-500 text-sm font-medium">Food Waste Saved</p>
-                        <h3 class="text-2xl font-bold mt-2 text-gray-800">£{{ waste_savings|default:"0" }}</h3>
+                        <h3 class="text-2xl font-bold mt-2 text-gray-800">£{{ waste_savings|floatformat:2|default:"0.00" }}</h3>
                     </div>
                     <div class="bg-amber-100 p-3 rounded-lg">
                         <i class="fas fa-pound-sign text-amber-600 text-xl"></i>
@@ -93,9 +93,9 @@
                         <p class="text-gray-500 text-sm font-medium">Budget Status</p>
                         <h3 class="text-2xl font-bold mt-2 text-gray-800">
                             {% if current_budget %}
-                                £{{ current_budget.amount_spent|default:"0" }}/£{{ current_budget.amount }}
+                                £{{ current_budget.amount_spent|floatformat:2|default:"0.00" }}/£{{ current_budget.amount|floatformat:2 }}
                             {% else %}
-                                £0/£0
+                                £0.00/£0.00
                             {% endif %}
                         </h3>
                     </div>
@@ -165,7 +165,7 @@
                             <div class="flex-1">
                                 <h4 class="font-medium text-gray-800">Shopping List Completed</h4>
                                 <p class="text-gray-600 text-sm">
-                                    {{ consumption.items_count }} items • £{{ consumption.total_cost|default:"0" }} • {{ consumption.date|timesince }} ago
+                                    {{ consumption.items_count }} items • £{{ consumption.total_cost|floatformat:2|default:"0.00" }} • {{ consumption.date|timesince }} ago
                                 </p>
                             </div>
                         </div>
