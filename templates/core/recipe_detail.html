@@ -58,8 +58,7 @@
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                     {% if recipe.image %}
                         <img src="{{ recipe.image.url }}" alt="{{ recipe.name }}" class="w-full h-96 object-cover">
-                    {% else %}
-                        <img src="{% static 'default_recipe_images/pexels-ella-olsson-572949-1640777.jpg' %}" alt="Default recipe image" class="w-full h-96 object-cover">
+                    
                     {% endif %}
                 </div>
 
