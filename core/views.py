@@ -618,24 +618,11 @@ def create_shopping_list_view(request):
 def shopping_list_detail_view(request, list_id):
     """
     View shopping list details and allow the user to confirm purchases.
-    Also allows adding custom items to the list.
+    Also allows adding custom items to the list via AJAX.
     """
     shopping_list = get_object_or_404(ShoppingList, id=list_id, user=request.user)
-    items_qs = shopping_list.items.all().order_by('-priority', 'item_name')
-
-    # Group by priority for display
-    high_priority_items = items_qs.filter(priority='high')
-    medium_priority_items = items_qs.filter(priority='medium')
-    low_priority_items = items_qs.filter(priority='low')
-
-    total_items = items_qs.count()
-    purchased_items = items_qs.filter(purchased=True).count()
-    purchased_percentage = (purchased_items / total_items * 100) if total_items > 0 else 0
-
-    total_estimated = items_qs.aggregate(total=Sum('estimated_price'))['total'] or Decimal('0.00')
-    total_actual = items_qs.aggregate(total=Sum('actual_price'))['total'] or Decimal('0.00')
-
-    # Handle adding custom item
+    
+    # Handle adding custom item (AJAX and regular)
     if request.method == "POST" and request.POST.get("action") == "add_custom_item":
         custom_form = ShoppingListItemForm(request.POST)
         if custom_form.is_valid():
@@ -644,13 +631,40 @@ def shopping_list_detail_view(request, list_id):
             custom_item.purchased = False
             custom_item.save()
             
-            messages.success(request, f'"{custom_item.item_name}" added to shopping list!')
-            return redirect('shopping_list_detail', list_id=shopping_list.id)
+            # If it's an AJAX request, return JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Item added successfully!',
+                    'item': {
+                        'id': custom_item.id,
+                        'item_name': custom_item.item_name,
+                        'quantity': float(custom_item.quantity),
+                        'unit': custom_item.unit,
+                        'estimated_price': float(custom_item.estimated_price),
+                        'priority': custom_item.priority,
+                        'category': custom_item.category,
+                        'reason': custom_item.reason or '',
+                        'notes': custom_item.notes or '',
+                        'get_category_display': custom_item.get_category_display(),
+                    }
+                })
+            else:
+                messages.success(request, f'"{custom_item.item_name}" added to shopping list!')
+                return redirect('shopping_list_detail', list_id=shopping_list.id)
         else:
-            messages.error(request, 'Please correct the errors in the custom item form.')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Please correct the errors in the form.',
+                    'errors': custom_form.errors
+                })
+            else:
+                messages.error(request, 'Please correct the errors in the custom item form.')
 
     # Handle confirmation POST
     if request.method == "POST" and request.POST.get("action") == "confirm":
+        items_qs = shopping_list.items.all()
         purchased_payload = []
         total_actual_cost = Decimal('0.00')
         
@@ -740,6 +754,19 @@ def shopping_list_detail_view(request, list_id):
             except Exception as e:
                 messages.error(request, f"Error confirming purchases: {str(e)}")
 
+    # Get items for display
+    items_qs = shopping_list.items.all().order_by('-priority', 'item_name')
+    high_priority_items = items_qs.filter(priority='high')
+    medium_priority_items = items_qs.filter(priority='medium')
+    low_priority_items = items_qs.filter(priority='low')
+
+    total_items = items_qs.count()
+    purchased_items = items_qs.filter(purchased=True).count()
+    purchased_percentage = (purchased_items / total_items * 100) if total_items > 0 else 0
+
+    total_estimated = items_qs.aggregate(total=Sum('estimated_price'))['total'] or Decimal('0.00')
+    total_actual = items_qs.aggregate(total=Sum('actual_price'))['total'] or Decimal('0.00')
+
     # show list detail with enhanced context
     today = timezone.now().date()
     active_budget = Budget.objects.filter(
@@ -775,7 +802,7 @@ def shopping_list_detail_view(request, list_id):
         'active_budget': active_budget,
         'budget_info': budget_info,
         'today': today,
-        'custom_item_form': custom_item_form,  # Add the form to context
+        'custom_item_form': custom_item_form,
     }
     return render(request, 'core/shopping_list_detail.html', context)
 

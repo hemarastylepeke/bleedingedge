@@ -2,11 +2,13 @@
 {% load static %}
 {% block content %}
 
-<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8"> <!-- Changed to match navbar width and added side padding -->
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
   <h1 class="text-2xl font-bold text-gray-800 mb-6">{{ shopping_list.name }}</h1>
 
-  <form method="post" enctype="multipart/form-data">
+  <!-- Main Form for Confirming Purchases -->
+  <form method="post" id="confirmForm" enctype="multipart/form-data">
     {% csrf_token %}
+    <input type="hidden" name="action" value="confirm" />
 
     <!-- ===== Budget & Spending Overview ===== -->
     <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
@@ -250,38 +252,148 @@
       </div>
     </div>
     {% endif %}
+  </form>
 
-    <!-- ====== Shopping Tips ====== -->
-    <div class="bg-blue-50 rounded-xl p-4 mb-6 border border-blue-200">
-      <div class="flex items-start space-x-3">
-        <div class="flex-shrink-0">
-          <i class="fas fa-lightbulb text-blue-600 mt-1"></i>
-        </div>
+  <!-- ====== Add Custom Items ====== -->
+  <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+    <h3 class="text-xl font-semibold text-gray-800 mb-4">Add Custom Items</h3>
+    
+    <!-- Separate Form for Adding Custom Items -->
+    <form method="post" id="customItemForm" class="space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add_custom_item" />
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Item Name -->
         <div>
-          <h4 class="font-medium text-blue-800">Shopping Tips</h4>
-          <ul class="text-sm text-blue-600 mt-1 space-y-1">
-            <li>• Add expiry dates for better food waste tracking</li>
-            <li>• Update actual prices for accurate budget tracking</li>
-            <li>• Adjust quantities if you purchased different amounts</li>
-            <li>• Mark items as purchased to track your progress</li>
-          </ul>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Item Name</label>
+          <input type="text" name="item_name" required
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                 placeholder="Enter item name">
+        </div>
+        
+        <!-- Quantity -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+          <input type="number" name="quantity" step="0.01" min="0" required
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                 placeholder="0.00" value="1">
+        </div>
+        
+        <!-- Unit -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Unit</label>
+          <input type="text" name="unit" required
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                 placeholder="g, ml, pieces" value="g">
+        </div>
+        
+        <!-- Estimated Price -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Estimated Price (£)</label>
+          <input type="number" name="estimated_price" step="0.01" min="0" required
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                 placeholder="0.00">
         </div>
       </div>
-    </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Category -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+          <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+            <option value="other">Other</option>
+            <option value="vegetables">Vegetables</option>
+            <option value="fruits">Fruits</option>
+            <option value="dairy">Dairy & Eggs</option>
+            <option value="meat">Meat & Poultry</option>
+            <option value="seafood">Seafood</option>
+            <option value="grains">Grains & Cereals</option>
+            <option value="legumes">Legumes & Nuts</option>
+            <option value="spices">Spices & Herbs</option>
+            <option value="condiments">Condiments & Sauces</option>
+            <option value="beverages">Beverages</option>
+            <option value="frozen">Frozen Foods</option>
+            <option value="bakery">Bakery</option>
+            <option value="canned">Canned Goods</option>
+          </select>
+        </div>
+        
+        <!-- Priority -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+          <select name="priority" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+            <option value="low">Low Priority</option>
+            <option value="medium" selected>Medium Priority</option>
+            <option value="high">High Priority</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Reason -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Reason (Optional)</label>
+        <input type="text" name="reason"
+               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+               placeholder="Why do you need this item?">
+      </div>
+      
+      <!-- Notes -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+        <textarea name="notes" rows="2"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-vertical"
+                  placeholder="Any additional notes..."></textarea>
+      </div>
+      
+      <div class="flex space-x-3">
+        <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center">
+          <i class="fas fa-plus mr-2"></i>
+          Add Item
+        </button>
+        
+        <!-- Quick Add Multiple Button -->
+        <button type="button" id="quickAddAnother"
+                class="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center">
+          <i class="fas fa-plus-circle mr-2"></i>
+          Add & Add Another
+        </button>
+      </div>
+    </form>
+  </div>
 
-    <!-- ====== Confirm Purchases Button ====== -->
-    <div class="mt-8">
-      <input type="hidden" name="action" value="confirm" />
-      <button type="submit"
-              class="w-full bg-green-600 hover:bg-green-800 text-white py-3 px-4 rounded-lg font-medium text-lg transition-colors duration-200 flex items-center justify-center">
-        <i class="fas fa-check-circle mr-2"></i>
-        Confirm Purchases & Update Budget
-      </button>
-      <p class="text-sm text-gray-500 text-center mt-2">
-        This will update your pantry, track spending, and analyze food waste
-      </p>
+  <!-- ====== Shopping Tips ====== -->
+  <div class="bg-blue-50 rounded-xl p-4 mb-6 border border-blue-200">
+    <div class="flex items-start space-x-3">
+      <div class="flex-shrink-0">
+        <i class="fas fa-lightbulb text-blue-600 mt-1"></i>
+      </div>
+      <div>
+        <h4 class="font-medium text-blue-800">Shopping Tips</h4>
+        <ul class="text-sm text-blue-600 mt-1 space-y-1">
+          <li>• Add expiry dates for better food waste tracking</li>
+          <li>• Update actual prices for accurate budget tracking</li>
+          <li>• Adjust quantities if you purchased different amounts</li>
+          <li>• Mark items as purchased to track your progress</li>
+          <li>• Add custom items you need that weren't suggested by AI</li>
+          <li>• Use "Add & Add Another" to quickly add multiple items</li>
+        </ul>
+      </div>
     </div>
-  </form>
+  </div>
+
+  <!-- ====== Confirm Purchases Button ====== -->
+  <div class="mt-8">
+    <button type="submit" form="confirmForm"
+            class="w-full bg-green-600 hover:bg-green-800 text-white py-3 px-4 rounded-lg font-medium text-lg transition-colors duration-200 flex items-center justify-center">
+      <i class="fas fa-check-circle mr-2"></i>
+      Confirm Purchases & Update Budget
+    </button>
+    <p class="text-sm text-gray-500 text-center mt-2">
+      This will update your pantry, track spending, and analyze food waste
+    </p>
+  </div>
 </div>
 
 <script>
@@ -334,7 +446,119 @@ document.addEventListener('DOMContentLoaded', function() {
             input.value = today;
         }
     });
+
+    // Handle custom item form submission
+    const customItemForm = document.getElementById('customItemForm');
+    const quickAddAnotherBtn = document.getElementById('quickAddAnother');
+    
+    if (customItemForm) {
+        // Regular form submission
+        customItemForm.addEventListener('submit', function(e) {
+            if (!validateCustomItemForm()) {
+                e.preventDefault();
+                return;
+            }
+        });
+
+        // Quick add another functionality
+        quickAddAnotherBtn.addEventListener('click', function() {
+            if (validateCustomItemForm()) {
+                // Submit the form via AJAX to avoid page reload
+                submitCustomItemForm(true);
+            }
+        });
+    }
+
+    function validateCustomItemForm() {
+        const form = customItemForm;
+        const itemName = form.querySelector('input[name="item_name"]');
+        const quantity = form.querySelector('input[name="quantity"]');
+        const unit = form.querySelector('input[name="unit"]');
+        const estimatedPrice = form.querySelector('input[name="estimated_price"]');
+        
+        let isValid = true;
+        
+        if (!itemName.value.trim()) {
+            alert('Please enter an item name');
+            itemName.focus();
+            isValid = false;
+        } else if (!quantity.value || parseFloat(quantity.value) <= 0) {
+            alert('Please enter a valid quantity greater than 0');
+            quantity.focus();
+            isValid = false;
+        } else if (!unit.value.trim()) {
+            alert('Please enter a unit');
+            unit.focus();
+            isValid = false;
+        } else if (!estimatedPrice.value || parseFloat(estimatedPrice.value) < 0) {
+            alert('Please enter a valid estimated price');
+            estimatedPrice.focus();
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+
+    function submitCustomItemForm(quickAdd = false) {
+        const form = customItemForm;
+        const formData = new FormData(form);
+        
+        fetch('', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (quickAdd) {
+                    // Clear the form for next item
+                    form.reset();
+                    // Show success message
+                    showToast('Item added successfully! You can add another item.', 'success');
+                    // Focus on the first field
+                    form.querySelector('input[name="item_name"]').focus();
+                } else {
+                    // Regular form submission - redirect
+                    window.location.reload();
+                }
+            } else {
+                alert('Error adding item: ' + (data.message || 'Please try again.'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error adding item. Please try again.');
+        });
+    }
+
+    function showToast(message, type = 'info') {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg text-white ${
+            type === 'success' ? 'bg-green-500' : 'bg-blue-500'
+        } z-50`;
+        toast.textContent = message;
+        
+        document.body.appendChild(toast);
+        
+        // Remove toast after 3 seconds
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+
+    // Update progress when any checkbox changes
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.type === 'checkbox' && e.target.name.startsWith('purchased_')) {
+            updateProgress();
+        }
+    });
+
+    // Initialize progress on page load
+    updateProgress();
 });
 </script>
-
 {% endblock %}
