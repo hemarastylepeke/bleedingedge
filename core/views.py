@@ -618,8 +618,7 @@ def create_shopping_list_view(request):
 def shopping_list_detail_view(request, list_id):
     """
     View shopping list details and allow the user to confirm purchases.
-    Confirmation records actual price/quantity/expiry and updates pantry via service.
-    After confirmation, updates budget spending and triggers food waste detection.
+    Also allows adding custom items to the list.
     """
     shopping_list = get_object_or_404(ShoppingList, id=list_id, user=request.user)
     items_qs = shopping_list.items.all().order_by('-priority', 'item_name')
@@ -636,6 +635,20 @@ def shopping_list_detail_view(request, list_id):
     total_estimated = items_qs.aggregate(total=Sum('estimated_price'))['total'] or Decimal('0.00')
     total_actual = items_qs.aggregate(total=Sum('actual_price'))['total'] or Decimal('0.00')
 
+    # Handle adding custom item
+    if request.method == "POST" and request.POST.get("action") == "add_custom_item":
+        custom_form = ShoppingListItemForm(request.POST)
+        if custom_form.is_valid():
+            custom_item = custom_form.save(commit=False)
+            custom_item.shopping_list = shopping_list
+            custom_item.purchased = False
+            custom_item.save()
+            
+            messages.success(request, f'"{custom_item.item_name}" added to shopping list!')
+            return redirect('shopping_list_detail', list_id=shopping_list.id)
+        else:
+            messages.error(request, 'Please correct the errors in the custom item form.')
+
     # Handle confirmation POST
     if request.method == "POST" and request.POST.get("action") == "confirm":
         purchased_payload = []
@@ -649,7 +662,6 @@ def shopping_list_detail_view(request, list_id):
                 actual_price_raw = request.POST.get(f"actual_price_{prefix_id}")
                 qty_raw = request.POST.get(f"purchased_qty_{prefix_id}")
                 expiry_date_raw = request.POST.get(f"expiry_date_{prefix_id}")
-                expiry_file = request.FILES.get(f"expiry_image_{prefix_id}")
 
                 # Calculate actual price for this item
                 actual_price = Decimal(actual_price_raw) if actual_price_raw and actual_price_raw.strip() else sli.estimated_price
@@ -660,7 +672,6 @@ def shopping_list_detail_view(request, list_id):
                     "actual_price": float(actual_price) if actual_price else None,
                     "purchased_quantity": float(qty_raw) if qty_raw and qty_raw.strip() else sli.quantity,
                     "expiry_date": expiry_date_raw if expiry_date_raw and expiry_date_raw.strip() else None,
-                    "expiry_label_image": expiry_file,
                 }
                 purchased_payload.append(item_payload)
 
@@ -702,13 +713,13 @@ def shopping_list_detail_view(request, list_id):
                             new_total_spent = active_budget.sync_amount_spent()
                             
                             messages.success(request, 
-                                f'Shopping list confirmed successfully! ${total_actual_cost} spent. '
-                                f'Budget updated: ${new_total_spent} spent of ${active_budget.amount}. '
-                                f'Remaining budget: ${active_budget.get_remaining_budget()}'
+                                f'Shopping list confirmed successfully! £{total_actual_cost} spent. '
+                                f'Budget updated: £{new_total_spent} spent of £{active_budget.amount}. '
+                                f'Remaining budget: £{active_budget.get_remaining_budget()}'
                             )
                         else:
                             messages.success(request, 
-                                f'Shopping list confirmed successfully! ${total_actual_cost} spent. '
+                                f'Shopping list confirmed successfully! £{total_actual_cost} spent. '
                                 'No active budget found for tracking.'
                             )
                         
@@ -748,6 +759,9 @@ def shopping_list_detail_view(request, list_id):
             'daily_budget': active_budget.get_remaining_budget() / max((active_budget.end_date - today).days, 1) if active_budget.end_date else Decimal('0.00')
         }
 
+    # Form for adding custom items
+    custom_item_form = ShoppingListItemForm()
+
     context = {
         'shopping_list': shopping_list,
         'high_priority_items': high_priority_items,
@@ -761,6 +775,7 @@ def shopping_list_detail_view(request, list_id):
         'active_budget': active_budget,
         'budget_info': budget_info,
         'today': today,
+        'custom_item_form': custom_item_form,  # Add the form to context
     }
     return render(request, 'core/shopping_list_detail.html', context)
 
