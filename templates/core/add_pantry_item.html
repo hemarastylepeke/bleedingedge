@@ -37,7 +37,7 @@
             <p class="text-sm text-gray-600 mt-1">Fill in the details below to add an item to your pantry</p>
         </div>
         
-        <form method="post" enctype="multipart/form-data" class="p-6 space-y-8">
+        <form method="post" enctype="multipart/form-data" class="p-6 space-y-8" id="pantryItemForm">
             {% csrf_token %}
             
             <!-- Basic Information Section -->
@@ -54,7 +54,8 @@
                     </label>
                     <div class="relative">
                         {{ form.name }}
-                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <i class="fas fa-tag text-gray-400"></i>
                         </div>
                     </div>
                     {% if form.name.errors %}
@@ -71,7 +72,7 @@
                     </label>
                     <div class="relative">
                         {{ form.category }}
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 mt-7">
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
@@ -128,6 +129,7 @@
                         <div class="relative">
                             {{ form.purchase_date }}
                             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <i class="fas fa-calendar-alt text-gray-400"></i>
                             </div>
                         </div>
                         {% if form.purchase_date.errors %}
@@ -144,6 +146,7 @@
                         <div class="relative">
                             {{ form.expiry_date }}
                             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <i class="fas fa-clock text-gray-400"></i>
                             </div>
                         </div>
                         {% if form.expiry_date.errors %}
@@ -242,6 +245,7 @@
                         <div class="relative">
                             {{ form.price }}
                             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-pound-sign text-gray-400"></i>
                             </div>
                         </div>
                         {% if form.price.errors %}
@@ -258,6 +262,7 @@
                         <div class="relative">
                             {{ form.barcode }}
                             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <i class="fas fa-barcode text-gray-400"></i>
                             </div>
                         </div>
                         {% if form.barcode.errors %}
@@ -287,12 +292,13 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Product Image (optional)
                         </label>
-                        <div class="file-upload-container">
+                        <div class="file-upload-container" id="productImageContainer">
                             {{ form.product_image }}
                             <div class="file-upload-content">
                                 <i class="fas fa-cloud-upload-alt text-gray-400 text-xl mb-2"></i>
                                 <p class="text-sm font-medium text-gray-700">Upload product image</p>
                                 <p class="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                                <p class="text-xs text-blue-600 mt-1">AI will analyze for product info</p>
                             </div>
                         </div>
                         {% if form.product_image.errors %}
@@ -306,12 +312,13 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Expiry Label Image (optional)
                         </label>
-                        <div class="file-upload-container">
+                        <div class="file-upload-container" id="expiryImageContainer">
                             {{ form.expiry_label_image }}
                             <div class="file-upload-content">
                                 <i class="fas fa-barcode text-gray-400 text-xl mb-2"></i>
                                 <p class="text-sm font-medium text-gray-700">Upload expiry label</p>
                                 <p class="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                                <p class="text-xs text-blue-600 mt-1">AI will detect expiry date</p>
                             </div>
                         </div>
                         {% if form.expiry_label_image.errors %}
@@ -355,12 +362,12 @@
         <div class="flex items-start">
             <i class="fas fa-lightbulb text-blue-500 mt-1 mr-3"></i>
             <div>
-                <h3 class="font-semibold text-blue-900">Quick Tips</h3>
+                <h3 class="font-semibold text-blue-900">AI-Powered Features</h3>
                 <ul class="text-sm text-blue-800 mt-2 space-y-1">
-                    <li>• Take photos of expiry labels for automatic date detection</li>
-                    <li>• Use consistent units (grams, milliliters, pieces) for better tracking</li>
-                    <li>• Fill in nutritional information for accurate recipe calculations</li>
-                    <li>• Add storage instructions to help maintain food freshness</li>
+                    <li>• <strong>Automatic Expiry Detection:</strong> Upload expiry labels and AI will extract the date</li>
+                    <li>• <strong>Product Name Recognition:</strong> AI can read product names from images</li>
+                    <li>• <strong>Barcode Detection:</strong> Automatically extract barcodes from product images</li>
+                    <li>• <strong>Smart Form Filling:</strong> AI only fills empty fields, never overwrites your data</li>
                 </ul>
             </div>
         </div>
@@ -414,6 +421,16 @@ select {
     background-color: #f0fdf4;
 }
 
+.file-upload-container.processing {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+.file-upload-container.success {
+    border-color: #10b981;
+    background-color: #f0fdf4;
+}
+
 .file-upload-container input[type="file"] {
     position: absolute;
     top: 0;
@@ -461,37 +478,229 @@ input[type="number"] {
     margin: 0;
 }
 
-/* Fix dropdown arrow positioning */
-.relative .absolute {
-    top: 50%;
-    transform: translateY(-50%);
-    margin-top: 0.75rem;
+/* Toast container */
+#toast-container {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 400px;
+}
+
+/* AI processing animation */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.processing-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 </style>
 
 <script>
-// Enhance file input functionality
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Real-time AI image processing
+async function processImageWithAI(imageFile, imageType) {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    formData.append('image_type', imageType);
+    
+    try {
+        const response = await fetch('/api/process-pantry-image/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('AI processing error:', error);
+        throw error;
+    }
+}
+
+// Show AI toast notifications
+function showAIToast(message, type = 'info') {
+    // Create toast container if it doesn't exist
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'space-y-3';
+        document.body.appendChild(toastContainer);
+    }
+    
+    const bgColor = type === 'success' ? 'bg-green-500' : 
+                   type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+    const icon = type === 'success' ? 'fa-check-circle' : 
+                type === 'error' ? 'fa-exclamation-triangle' : 'fa-robot';
+    
+    const toast = document.createElement('div');
+    toast.className = `${bgColor} text-white p-4 rounded-lg shadow-lg max-w-sm transform transition-all duration-300 translate-x-full`;
+    toast.innerHTML = `
+        <div class="flex items-center space-x-3">
+            <i class="fas ${icon} text-white"></i>
+            <div class="flex-1">
+                <p class="text-sm font-medium">${message}</p>
+            </div>
+            <button class="text-white hover:text-gray-200 transition-colors" onclick="this.parentElement.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+        toast.classList.add('translate-x-0');
+    }, 100);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        toast.classList.remove('translate-x-0');
+        toast.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 300);
+    }, 5000);
+}
+
+// Enhanced file input functionality with AI processing
 document.addEventListener('DOMContentLoaded', function() {
     const fileInputs = document.querySelectorAll('input[type="file"]');
     
     fileInputs.forEach(input => {
         const container = input.closest('.file-upload-container');
+        const isExpiryImage = input.name === 'expiry_label_image';
         
-        input.addEventListener('change', function(e) {
+        input.addEventListener('change', async function(e) {
             if (this.files && this.files[0]) {
-                container.classList.add('border-green-400', 'bg-green-50');
-                container.classList.remove('border-gray-300', 'bg-gray-50');
+                const file = this.files[0];
                 
-                // Update text to show file name
-                const fileName = this.files[0].name;
+                // Validate file type and size
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                
+                if (!validTypes.includes(file.type)) {
+                    showAIToast('Please upload a valid image (JPEG, PNG, WebP)', 'error');
+                    this.value = '';
+                    return;
+                }
+                
+                if (file.size > maxSize) {
+                    showAIToast('Image size must be less than 5MB', 'error');
+                    this.value = '';
+                    return;
+                }
+                
+                // Show processing state
+                container.classList.add('processing');
                 const contentDiv = container.querySelector('.file-upload-content');
                 contentDiv.innerHTML = `
-                    <i class="fas fa-check-circle text-green-500 text-xl mb-2"></i>
-                    <p class="text-sm font-medium text-gray-700 truncate">${fileName}</p>
-                    <p class="text-xs text-gray-500 mt-1">Click to change</p>
+                    <i class="fas fa-spinner fa-spin text-blue-500 text-xl mb-2 processing-pulse"></i>
+                    <p class="text-sm font-medium text-gray-700">Processing with AI...</p>
+                    <p class="text-xs text-blue-600 mt-1">Analyzing image content</p>
                 `;
+                
+                try {
+                    // Process with AI
+                    const result = await processImageWithAI(file, isExpiryImage ? 'expiry' : 'product');
+                    
+                    if (result.success) {
+                        const aiData = result.extracted_data;
+                        
+                        // Update UI for success
+                        container.classList.remove('processing');
+                        container.classList.add('success');
+                        
+                        contentDiv.innerHTML = `
+                            <i class="fas fa-check-circle text-green-500 text-xl mb-2"></i>
+                            <p class="text-sm font-medium text-gray-700 truncate">${file.name}</p>
+                            <p class="text-xs text-green-600 mt-1">AI analysis complete</p>
+                        `;
+                        
+                        // Auto-fill form fields with AI data (only if fields are empty)
+                        let filledFields = [];
+                        
+                        if (isExpiryImage && aiData.expiry_date) {
+                            const expiryField = document.querySelector('input[name="expiry_date"]');
+                            if (expiryField && !expiryField.value) {
+                                expiryField.value = aiData.expiry_date;
+                                filledFields.push(`Expiry date: ${aiData.expiry_date}`);
+                            }
+                        }
+                        
+                        if (aiData.product_name) {
+                            const nameField = document.querySelector('input[name="name"]');
+                            if (nameField && (!nameField.value || nameField.value.trim().length < 3)) {
+                                nameField.value = aiData.product_name;
+                                filledFields.push(`Product name: ${aiData.product_name}`);
+                            }
+                        }
+                        
+                        if (aiData.barcode) {
+                            const barcodeField = document.querySelector('input[name="barcode"]');
+                            if (barcodeField && !barcodeField.value) {
+                                barcodeField.value = aiData.barcode;
+                                filledFields.push(`Barcode: ${aiData.barcode}`);
+                            }
+                        }
+                        
+                        // Show success message
+                        if (filledFields.length > 0) {
+                            showAIToast(`AI detected: ${filledFields.join(', ')}`, 'success');
+                        } else {
+                            showAIToast('Image processed successfully', 'success');
+                        }
+                        
+                    } else {
+                        throw new Error(result.error || 'AI processing failed');
+                    }
+                    
+                } catch (error) {
+                    console.error('AI processing error:', error);
+                    
+                    // Fallback to regular file upload
+                    container.classList.remove('processing');
+                    container.classList.add('success');
+                    
+                    contentDiv.innerHTML = `
+                        <i class="fas fa-check-circle text-green-500 text-xl mb-2"></i>
+                        <p class="text-sm font-medium text-gray-700 truncate">${file.name}</p>
+                        <p class="text-xs text-gray-500 mt-1">Click to change</p>
+                    `;
+                    
+                    showAIToast('Image uploaded (AI processing unavailable)', 'info');
+                }
             } else {
-                container.classList.remove('border-green-400', 'bg-green-50');
+                container.classList.remove('processing', 'success');
                 container.classList.add('border-gray-300', 'bg-gray-50');
             }
         });
@@ -499,18 +708,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add drag and drop functionality
         container.addEventListener('dragover', function(e) {
             e.preventDefault();
-            container.classList.add('border-green-400', 'bg-green-50');
+            container.classList.add('border-blue-400', 'bg-blue-50');
         });
         
         container.addEventListener('dragleave', function(e) {
             e.preventDefault();
             if (!container.contains(e.relatedTarget)) {
-                container.classList.remove('border-green-400', 'bg-green-50');
+                container.classList.remove('border-blue-400', 'bg-blue-50');
             }
         });
         
         container.addEventListener('drop', function(e) {
             e.preventDefault();
+            container.classList.remove('border-blue-400', 'bg-blue-50');
             if (e.dataTransfer.files.length) {
                 input.files = e.dataTransfer.files;
                 input.dispatchEvent(new Event('change'));
@@ -546,6 +756,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const nameField = document.querySelector('input[name="name"]');
     if (nameField) {
         nameField.focus();
+    }
+
+    // Form submission handling
+    const form = document.getElementById('pantryItemForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const submitButton = this.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding Item...';
+            }
+        });
     }
 });
 </script>
