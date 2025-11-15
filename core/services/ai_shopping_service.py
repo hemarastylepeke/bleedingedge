@@ -303,15 +303,19 @@ def confirm_shopping_list(user, shopping_list_id, purchased_items_payload, total
                     total_spent += actual_price or Decimal("0.00")
                     purchase_qty = sli.quantity or 0
 
-                    # Parse expiry date
+                    # Parse expiry date - FIX: Set default expiry date if not provided
                     expiry_date = None
                     if p.get("expiry_date"):
                         try:
                             expiry_date = timezone.datetime.strptime(p["expiry_date"], "%Y-%m-%d").date()
                         except Exception:
-                            expiry_date = None
+                            # If invalid date, set default expiry (7 days from now)
+                            expiry_date = timezone.now().date() + timedelta(days=7)
+                    else:
+                        # Set default expiry date (7 days from now) if not provided
+                        expiry_date = timezone.now().date() + timedelta(days=7)
 
-                    # Add to pantry only if purchased
+                    # Add to pantry only if purchased - FIX: Always provide expiry_date
                     UserPantry.objects.create(
                         user=user,
                         name=sli.item_name,
@@ -319,7 +323,7 @@ def confirm_shopping_list(user, shopping_list_id, purchased_items_payload, total
                         quantity=purchase_qty,
                         unit=sli.unit,
                         purchase_date=timezone.now().date(),
-                        expiry_date=expiry_date if expiry_date else None,
+                        expiry_date=expiry_date,  # Now always has a value
                         price=actual_price or None,
                         status='active',
                         detection_source='manual'
@@ -349,7 +353,4 @@ def confirm_shopping_list(user, shopping_list_id, purchased_items_payload, total
         return sl
 
     except Exception as e:
-        print(f"Error confirming shopping list: {e}")
-        import traceback
-        traceback.print_exc()
         return None

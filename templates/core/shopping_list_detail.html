@@ -442,13 +442,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Regular form submission
         customItemForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            e.stopPropagation(); // Prevent event bubbling
             if (validateCustomItemForm()) {
                 submitCustomItemForm(false);
             }
         });
 
         // Quick add another functionality
-        quickAddAnotherBtn.addEventListener('click', function() {
+        quickAddAnotherBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation(); // Prevent event bubbling
             if (validateCustomItemForm()) {
                 submitCustomItemForm(true);
             }
@@ -524,6 +527,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (quickAdd) {
                     // Clear the form for next item
                     form.reset();
+                    // Reset default values
+                    document.getElementById('itemQuantity').value = '1';
+                    document.getElementById('itemUnit').value = 'g';
                     // Show success message
                     showToast('Item added successfully! You can add another item.', 'success');
                     // Focus on the first field
@@ -561,7 +567,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const countElement = document.getElementById(priority + 'PriorityCount');
         
         // Show the section if it was hidden
-        if (sectionContainer.style.display === 'none') {
+        if (sectionContainer && sectionContainer.style.display === 'none') {
             sectionContainer.style.display = 'block';
         }
         
@@ -620,20 +626,24 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         
         // Add the new item to the section
-        sectionElement.insertAdjacentHTML('beforeend', newItemHtml);
-        
-        // Update the count
-        const currentCount = parseInt(countElement.textContent) || 0;
-        countElement.textContent = (currentCount + 1) + ' items';
-        
-        // Add event listener to the new checkbox
-        const newCheckbox = sectionElement.querySelector(`input[name="purchased_${item.id}"]`);
-        if (newCheckbox) {
-            newCheckbox.addEventListener('change', updateProgress);
+        if (sectionElement) {
+            sectionElement.insertAdjacentHTML('beforeend', newItemHtml);
+            
+            // Update the count
+            if (countElement) {
+                const currentCount = parseInt(countElement.textContent) || 0;
+                countElement.textContent = (currentCount + 1) + ' items';
+            }
+            
+            // Add event listener to the new checkbox
+            const newCheckbox = sectionElement.querySelector(`input[name="purchased_${item.id}"]`);
+            if (newCheckbox) {
+                newCheckbox.addEventListener('change', updateProgress);
+            }
+            
+            // Trigger progress update since the item is automatically checked
+            updateProgress();
         }
-        
-        // Trigger progress update since the item is automatically checked
-        updateProgress();
     }
 
     function showToast(message, type = 'info') {
@@ -657,7 +667,9 @@ document.addEventListener('DOMContentLoaded', function() {
             toast.classList.remove('translate-x-0');
             toast.classList.add('translate-x-full');
             setTimeout(() => {
-                toast.remove();
+                if (toast.parentNode) {
+                    toast.remove();
+                }
             }, 300);
         }, 3000);
     }
@@ -673,3 +685,4 @@ document.addEventListener('DOMContentLoaded', function() {
     updateProgress();
 });
 </script>
+{% endblock %}

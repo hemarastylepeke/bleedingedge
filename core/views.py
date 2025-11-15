@@ -671,21 +671,33 @@ def shopping_list_detail_view(request, list_id):
         # Collect all purchased items and calculate total cost
         for sli in items_qs:
             prefix_id = str(sli.id)
-            purchased_flag = request.POST.get(f"purchased_{prefix_id}") == "on"
+            # FIX: Check if checkbox exists in POST data (means it's checked)
+            purchased_flag = f"purchased_{prefix_id}" in request.POST
+            
             if purchased_flag:
-                actual_price_raw = request.POST.get(f"actual_price_{prefix_id}")
-                qty_raw = request.POST.get(f"purchased_qty_{prefix_id}")
-                expiry_date_raw = request.POST.get(f"expiry_date_{prefix_id}")
+                actual_price_raw = request.POST.get(f"actual_price_{prefix_id}", "").strip()
+                qty_raw = request.POST.get(f"purchased_qty_{prefix_id}", "").strip()
+                expiry_date_raw = request.POST.get(f"expiry_date_{prefix_id}", "").strip()
 
                 # Calculate actual price for this item
-                actual_price = Decimal(actual_price_raw) if actual_price_raw and actual_price_raw.strip() else sli.estimated_price
+                try:
+                    actual_price = Decimal(actual_price_raw) if actual_price_raw else sli.estimated_price
+                except (decimal.InvalidOperation, ValueError):
+                    actual_price = sli.estimated_price
+                    
                 total_actual_cost += actual_price
+
+                # Handle quantity conversion safely
+                try:
+                    purchased_quantity = float(qty_raw) if qty_raw else float(sli.quantity)
+                except (ValueError, TypeError):
+                    purchased_quantity = float(sli.quantity)
 
                 item_payload = {
                     "shopping_list_item_id": sli.id,
-                    "actual_price": float(actual_price) if actual_price else None,
-                    "purchased_quantity": float(qty_raw) if qty_raw and qty_raw.strip() else sli.quantity,
-                    "expiry_date": expiry_date_raw if expiry_date_raw and expiry_date_raw.strip() else None,
+                    "actual_price": float(actual_price),
+                    "purchased_quantity": purchased_quantity,
+                    "expiry_date": expiry_date_raw if expiry_date_raw else None,
                 }
                 purchased_payload.append(item_payload)
 
@@ -712,7 +724,7 @@ def shopping_list_detail_view(request, list_id):
                         total_actual_cost=float(total_actual_cost)
                     )
 
-                    if result:
+                    if result is not None:  # Check for None explicitly
                         # Update budget spending
                         today = timezone.now().date()
                         active_budget = Budget.objects.filter(
