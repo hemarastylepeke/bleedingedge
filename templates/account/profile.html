@@ -42,7 +42,7 @@
               {% if profile.first_name and profile.last_name %}
                 {{ profile.first_name }} {{ profile.last_name }}
               {% else %}
-                {{ profile.user.username }}
+                {{ profile.user.email }}
               {% endif %}
             </h2>
             <p class="text-green-100 mt-1">{{ profile.user.email }}</p>
@@ -181,6 +181,11 @@
                           Inactive
                         </span>
                         {% endif %}
+                        {% if goal.progress_percentage >= 100 %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          Completed
+                        </span>
+                        {% endif %}
                       </div>
                     </div>
                   </div>
@@ -190,11 +195,11 @@
                 <div class="mb-4">
                   <div class="flex justify-between items-center mb-2">
                     <span class="text-sm font-medium text-gray-700">Progress</span>
-                    <span class="text-sm font-bold text-emerald-600">{{ goal.progress_percentage }}%</span>
+                    <span class="text-sm font-bold text-emerald-600">{{ goal.progress_percentage|floatformat:0 }}%</span>
                   </div>
                   <div class="w-full bg-gray-200 rounded-full h-3">
                     <div class="bg-gradient-to-r from-emerald-500 to-green-500 h-3 rounded-full transition-all duration-500 ease-out progress-bar" 
-                         style="width: {{ goal.progress_percentage }}%"></div>
+                         style="width: {{ goal.progress_percentage|floatformat:0 }}%"></div>
                   </div>
                 </div>
 
@@ -202,12 +207,13 @@
                 <div class="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p class="text-gray-500">Current</p>
-                    <p class="font-semibold text-gray-800">{{ goal.current_value|default:"0" }}</p>
+                    <p class="font-semibold text-gray-800">{{ goal.current_value|default:"0"|floatformat:1 }}</p>
                   </div>
                   <div>
                     <p class="text-gray-500">Target</p>
-                    <p class="font-semibold text-gray-800">{{ goal.target_value|default:"N/A" }}</p>
+                    <p class="font-semibold text-gray-800">{{ goal.target_value|default:"N/A"|floatformat:1 }}</p>
                   </div>
+                  {% if goal.target_date %}
                   <div class="col-span-2">
                     <p class="text-gray-500">Target Date</p>
                     <p class="font-semibold text-gray-800 flex items-center">
@@ -217,34 +223,39 @@
                       {{ goal.target_date|date:"M d, Y" }}
                     </p>
                   </div>
+                  {% endif %}
                 </div>
 
                 <!-- Days Remaining -->
-                {% if goal.days_remaining > 0 %}
-                <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <div class="flex items-center justify-between">
-                    <span class="text-sm font-medium text-blue-800">Days Remaining</span>
-                    <span class="text-lg font-bold text-blue-600">{{ goal.days_remaining }}</span>
+                {% if goal.target_date %}
+                  {% if goal.days_remaining > 0 %}
+                  <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm font-medium text-blue-800">Days Remaining</span>
+                      <span class="text-lg font-bold text-blue-600">{{ goal.days_remaining }}</span>
+                    </div>
                   </div>
-                </div>
-                {% elif goal.days_remaining == 0 %}
-                <div class="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <div class="flex items-center">
-                    <svg class="w-4 h-4 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span class="text-sm font-medium text-yellow-800">Target date is today!</span>
+                  {% elif goal.days_remaining == 0 %}
+                  <div class="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div class="flex items-center">
+                      <svg class="w-4 h-4 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      <span class="text-sm font-medium text-yellow-800">Target date is today!</span>
+                    </div>
                   </div>
-                </div>
-                {% else %}
-                <div class="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
-                  <div class="flex items-center">
-                    <svg class="w-4 h-4 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span class="text-sm font-medium text-red-800">Target date passed</span>
+                  {% else %}
+                  <div class="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
+                    <div class="flex items-center">
+                      <svg class="w-4 h-4 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      <span class="text-sm font-medium text-red-800">
+                        Target date passed {% widthratio goal.days_remaining 1 -1 %} days ago
+                      </span>
+                    </div>
                   </div>
-                </div>
+                  {% endif %}
                 {% endif %}
               </div>
             {% endfor %}
@@ -258,15 +269,15 @@
                 <p class="text-sm text-emerald-800 font-medium">Total Goals</p>
               </div>
               <div>
-                <p class="text-2xl font-bold text-green-600">{{ active_goals_count|default:"0" }}</p>
+                <p class="text-2xl font-bold text-green-600">{{ active_goals_count }}</p>
                 <p class="text-sm text-green-800 font-medium">Active Goals</p>
               </div>
               <div>
-                <p class="text-2xl font-bold text-blue-600">{{ completed_goals_count|default:"0" }}</p>
+                <p class="text-2xl font-bold text-blue-600">{{ completed_goals_count }}</p>
                 <p class="text-sm text-blue-800 font-medium">Completed</p>
               </div>
               <div>
-                <p class="text-2xl font-bold text-purple-600">{{ average_progress|default:"0" }}%</p>
+                <p class="text-2xl font-bold text-purple-600">{{ average_progress }}%</p>
                 <p class="text-sm text-purple-800 font-medium">Avg Progress</p>
               </div>
             </div>

@@ -56,21 +56,31 @@ def profile_page_view(request):
     try:
         profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
-        # Create profile if it doesn't exist
-        profile = UserProfile.objects.create(user=request.user)
-    
+        messages.warning(request, 'Please create your profile first.')
+        return redirect('create_profile')
+   
+    # Get user goals
     user_goals = UserGoal.objects.filter(user_profile=profile).order_by('-created_at')
     
-    # Calculate statistics
-    active_goals_count = user_goals.filter(is_active=True).count()
-    completed_goals_count = user_goals.filter(progress_percentage__gte=100).count()
+    # Calculate statistics ,progress_percentage is a property, not a database field
+    active_goals_count = user_goals.filter(active=True).count()
     
-    # Calculate average progress (excluding goals without target values)
-    goals_with_progress = user_goals.exclude(target_value__isnull=True).exclude(target_value=0)
-    if goals_with_progress.exists():
-        average_progress = sum(goal.progress_percentage for goal in goals_with_progress) / goals_with_progress.count()
-    else:
-        average_progress = 0
+    # Calculate completed goals by checking the property in Python
+    completed_goals_count = 0
+    total_progress = 0
+    goals_with_progress_count = 0
+    
+    for goal in user_goals:
+        if goal.progress_percentage >= 100:
+            completed_goals_count += 1
+        
+        # Calculate average progress for goals that have target values
+        if goal.target_value and goal.target_value != 0 and goal.current_value is not None:
+            total_progress += goal.progress_percentage
+            goals_with_progress_count += 1
+    
+    # Calculate average progress
+    average_progress = total_progress / goals_with_progress_count if goals_with_progress_count > 0 else 0
 
     context = {
         'profile': profile,
@@ -80,7 +90,7 @@ def profile_page_view(request):
         'average_progress': round(average_progress, 1),
     }
     
-    return render(request, 'core/profile.html', context)
+    return render(request, 'account/profile.html', context)
 
 @login_required(login_url='account_login')
 def edit_profile_view(request):
@@ -157,7 +167,6 @@ def edit_profile_view(request):
 # Delete A profile
 @login_required(login_url='account_login')
 def delete_profile_view(request):
-  
     profile = get_object_or_404(UserProfile, user=request.user)
 
     if request.method == 'POST':
