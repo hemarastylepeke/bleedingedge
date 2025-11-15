@@ -1,5 +1,6 @@
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.db import models
+from django.utils import timezone
 
 class UserAccountManager(BaseUserManager):
     def create_user(self, email, password=None, **kwargs):
@@ -128,3 +129,29 @@ class UserGoal(models.Model):
 
     def __str__(self):
         return f"{self.user_profile.user.email} - {self.get_goal_type_display()}"
+    
+    @property
+    def days_remaining(self):
+        """Calculate days remaining until target date"""
+        if not self.target_date:
+            return None
+        today = timezone.now().date()
+        delta = self.target_date - today
+        return delta.days
+    
+    @property
+    def progress_percentage(self):
+        """Calculate progress percentage"""
+        if not self.target_value or not self.current_value:
+            return 0
+        
+        if self.target_value == 0:
+            return 0
+            
+        progress = (self.current_value / self.target_value) * 100
+        return min(progress, 100)  # Cap at 100%
+    
+    @property
+    def is_completed(self):
+        """Check if goal is completed"""
+        return self.progress_percentage >= 100

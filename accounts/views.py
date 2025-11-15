@@ -50,25 +50,37 @@ def create_profile_view(request):
 # View and update profile
 @login_required(login_url='account_login')
 def profile_page_view(request):
-    """Display the user's profile information in a read-only view."""
+    """
+    Display user profile with goals
+    """
     try:
         profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
-        messages.warning(request, 'Please create your profile first.')
-        return redirect('create_profile')
-
-    # Fetch user's goals and calculate progress
-    goals = UserGoal.objects.filter(user_profile=profile)
-    for goal in goals:
-        target = goal.target_value or 1  # avoid division by zero
-        current = goal.current_value or 0
-        goal.progress_percentage = min(round((current / target) * 100), 100)
+        # Create profile if it doesn't exist
+        profile = UserProfile.objects.create(user=request.user)
+    
+    user_goals = UserGoal.objects.filter(user_profile=profile).order_by('-created_at')
+    
+    # Calculate statistics
+    active_goals_count = user_goals.filter(is_active=True).count()
+    completed_goals_count = user_goals.filter(progress_percentage__gte=100).count()
+    
+    # Calculate average progress (excluding goals without target values)
+    goals_with_progress = user_goals.exclude(target_value__isnull=True).exclude(target_value=0)
+    if goals_with_progress.exists():
+        average_progress = sum(goal.progress_percentage for goal in goals_with_progress) / goals_with_progress.count()
+    else:
+        average_progress = 0
 
     context = {
         'profile': profile,
-        'user_goals': goals,
+        'user_goals': user_goals,
+        'active_goals_count': active_goals_count,
+        'completed_goals_count': completed_goals_count,
+        'average_progress': round(average_progress, 1),
     }
-    return render(request, 'account/profile.html', context)
+    
+    return render(request, 'core/profile.html', context)
 
 @login_required(login_url='account_login')
 def edit_profile_view(request):
