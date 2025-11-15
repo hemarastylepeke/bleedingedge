@@ -462,6 +462,7 @@ def enhance_pantry_item_with_ai(pantry_item_instance):
         if updated:
             pantry_item_instance.save()
             logger.info(f"Enhanced pantry item {pantry_item_instance.id} with AI data")
+            
             return True
             
     except Exception as e:
