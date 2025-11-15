@@ -12,18 +12,43 @@ logger = logging.getLogger(__name__)
 
 def extract_text_from_image(image_file):
     """
-    Extract text from image using OpenAI's Vision API
+    Extract text from image using OpenAI's Vision API with enhanced prompt
     """
     try:
         # Read and encode the image
         image_data = image_file.read()
         base64_image = base64.b64encode(image_data).decode('utf-8')
         
-        # Prepare the prompt for text extraction
+        # Enhanced prompt for comprehensive information extraction
         prompt = """
-        Extract ALL visible text from this image. Return ONLY the raw text exactly as it appears, 
-        without any interpretation, formatting, or additional comments. 
-        Preserve line breaks and spacing exactly as they appear.
+        Analyze this product image and extract ALL available information. Look for:
+        
+        1. PRODUCT NAME: The main product name/title
+        2. EXPIRY/BEST BEFORE DATE: Any date information (dd/mm/yyyy, mm/dd/yyyy, etc.)
+        3. NUTRITIONAL INFORMATION: Calories, protein, carbs, fat, fiber per 100g
+        4. BARCODE/UPC: Any barcode numbers
+        5. WEIGHT/VOLUME: Quantity and unit (g, kg, ml, l, etc.)
+        6. BRAND/MANUFACTURER: Brand name if visible
+        7. STORAGE INSTRUCTIONS: Any storage guidance
+        
+        Return the information in this exact JSON format:
+        {
+            "product_name": "extracted product name or null",
+            "expiry_date": "YYYY-MM-DD or null",
+            "barcode": "barcode number or null",
+            "quantity": number or null,
+            "unit": "g/ml/kg/l etc or null",
+            "calories": number or null,
+            "protein": number or null,
+            "carbs": number or null,
+            "fat": number or null,
+            "fiber": number or null,
+            "brand": "brand name or null",
+            "storage_instructions": "storage info or null",
+            "detected_text": "all raw text found in image"
+        }
+        
+        Only return valid JSON, no other text.
         """
         
         response = openai.chat.completions.create(
@@ -42,12 +67,21 @@ def extract_text_from_image(image_file):
                     ],
                 }
             ],
-            max_tokens=1000,
+            max_tokens=1500,
         )
         
         extracted_text = response.choices[0].message.content.strip()
-        logger.info(f"Extracted text from image: {extracted_text}")
-        return extracted_text
+        logger.info(f"Raw AI response: {extracted_text}")
+        
+        # Parse JSON response
+        try:
+            import json
+            extracted_data = json.loads(extracted_text)
+            return extracted_data
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse AI JSON response: {e}")
+            # Fallback to text extraction
+            return {"detected_text": extracted_text}
         
     except Exception as e:
         logger.error(f"Error extracting text from image: {str(e)}")
@@ -117,9 +151,121 @@ def try_parse_date(date_str):
     
     return None
 
+def extract_quantity_and_unit(text):
+    """
+    Extract quantity and unit from text
+    """
+    if not text:
+        return None, None
+    
+    # Common quantity patterns
+    patterns = [
+        r'(\d+\.?\d*)\s*(g|kg|ml|l|mg|oz|lb)\b',
+        r'(\d+\.?\d*)\s*(gram|kilogram|milliliter|liter|pound|ounce)s?\b',
+        r'\b(\d+)\s*(pieces|pcs|items|units)\b',
+        r'net\s+weight\s*:\s*(\d+\.?\d*)\s*(g|kg|ml|l)\b',
+        r'(\d+\.?\d*)\s*(g|kg|ml|l)\s*\/',
+    ]
+    
+    for pattern in patterns:
+        matches = re.findall(pattern, text.lower())
+        for match in matches:
+            quantity = float(match[0])
+            unit = match[1]
+            
+            # Normalize units
+            unit_map = {
+                'gram': 'g', 'grams': 'g', 'kilogram': 'kg', 'kilograms': 'kg',
+                'milliliter': 'ml', 'milliliters': 'ml', 'liter': 'l', 'liters': 'l',
+                'ounce': 'oz', 'ounces': 'oz', 'pound': 'lb', 'pounds': 'lb',
+                'piece': 'pieces', 'pcs': 'pieces', 'items': 'pieces', 'units': 'pieces'
+            }
+            unit = unit_map.get(unit, unit)
+            
+            return quantity, unit
+    
+    return None, None
+
+def extract_nutritional_info(text):
+    """
+    Extract nutritional information from text
+    """
+    if not text:
+        return {}
+    
+    nutritional_info = {}
+    
+    # Calories patterns
+    calorie_patterns = [
+        r'calories?[:\s]*(\d+\.?\d*)\s*(?:kcal)?',
+        r'energy[:\s]*(\d+\.?\d*)\s*(?:kcal|kj)',
+        r'(\d+\.?\d*)\s*kcal\s*per\s*100g',
+    ]
+    
+    for pattern in calorie_patterns:
+        matches = re.findall(pattern, text.lower())
+        for match in matches:
+            if isinstance(match, tuple):
+                nutritional_info['calories'] = float(match[0])
+            else:
+                nutritional_info['calories'] = float(match)
+            break
+    
+    # Protein patterns
+    protein_patterns = [
+        r'protein[:\s]*(\d+\.?\d*)\s*g',
+        r'(\d+\.?\d*)\s*g\s*protein\s*per\s*100g',
+    ]
+    
+    for pattern in protein_patterns:
+        matches = re.findall(pattern, text.lower())
+        for match in matches:
+            nutritional_info['protein'] = float(match)
+            break
+    
+    # Carbs patterns
+    carbs_patterns = [
+        r'carbohydrates?[:\s]*(\d+\.?\d*)\s*g',
+        r'carbs[:\s]*(\d+\.?\d*)\s*g',
+        r'(\d+\.?\d*)\s*g\s*carbohydrates?\s*per\s*100g',
+    ]
+    
+    for pattern in carbs_patterns:
+        matches = re.findall(pattern, text.lower())
+        for match in matches:
+            nutritional_info['carbs'] = float(match)
+            break
+    
+    # Fat patterns
+    fat_patterns = [
+        r'fat[:\s]*(\d+\.?\d*)\s*g',
+        r'(\d+\.?\d*)\s*g\s*fat\s*per\s*100g',
+    ]
+    
+    for pattern in fat_patterns:
+        matches = re.findall(pattern, text.lower())
+        for match in matches:
+            nutritional_info['fat'] = float(match)
+            break
+    
+    # Fiber patterns
+    fiber_patterns = [
+        r'fiber[:\s]*(\d+\.?\d*)\s*g',
+        r'fibre[:\s]*(\d+\.?\d*)\s*g',
+        r'dietary\s+fiber[:\s]*(\d+\.?\d*)\s*g',
+    ]
+    
+    for pattern in fiber_patterns:
+        matches = re.findall(pattern, text.lower())
+        for match in matches:
+            nutritional_info['fiber'] = float(match)
+            break
+    
+    return nutritional_info
+
 def extract_product_info_from_text(text):
     """
-    Extract product name and other information from text
+    Extract comprehensive product information from text
     """
     if not text:
         return {}
@@ -134,7 +280,7 @@ def extract_product_info_from_text(text):
             # Skip lines that are likely dates, numbers, or short codes
             if (not re.search(r'\d{2,}', line) and 
                 len(line) > 10 and 
-                not line.lower().startswith(('exp', 'best', 'use', 'bb', 'mf'))):
+                not line.lower().startswith(('exp', 'best', 'use', 'bb', 'mf', 'ingredients', 'nutrition'))):
                 info['product_name'] = line
                 break
     
@@ -151,11 +297,35 @@ def extract_product_info_from_text(text):
                 info['barcode'] = match
                 break
     
+    # Extract quantity and unit
+    quantity, unit = extract_quantity_and_unit(text)
+    if quantity:
+        info['quantity'] = quantity
+    if unit:
+        info['unit'] = unit
+    
+    # Extract nutritional information
+    nutritional_info = extract_nutritional_info(text)
+    info.update(nutritional_info)
+    
+    # Extract storage instructions
+    storage_patterns = [
+        r'store[:\s]*([^.]+\.)',
+        r'storage[:\s]*([^.]+\.)',
+        r'keep[:\s]*([^.]+\.)',
+    ]
+    
+    for pattern in storage_patterns:
+        matches = re.findall(pattern, text.lower())
+        for match in matches:
+            info['storage_instructions'] = match.strip()
+            break
+    
     return info
 
 def process_pantry_item_images(product_image=None, expiry_label_image=None, current_data=None):
     """
-    Main function to process uploaded images and extract information
+    Main function to process uploaded images and extract comprehensive information
     Returns updated data dictionary
     """
     extracted_data = current_data or {}
@@ -164,32 +334,64 @@ def process_pantry_item_images(product_image=None, expiry_label_image=None, curr
         # Process expiry label image first (highest priority for dates)
         if expiry_label_image:
             logger.info("Processing expiry label image...")
-            expiry_text = extract_text_from_image(expiry_label_image)
-            if expiry_text:
-                expiry_date = parse_expiry_date_from_text(expiry_text)
-                if expiry_date:
-                    extracted_data['expiry_date'] = expiry_date
-                    logger.info(f"Extracted expiry date: {expiry_date}")
-                
-                # Also extract product info from expiry label
-                product_info = extract_product_info_from_text(expiry_text)
-                extracted_data.update(product_info)
-        
-        # Process product image (secondary source of information)
-        if product_image and ('expiry_date' not in extracted_data or 'product_name' not in extracted_data):
-            logger.info("Processing product image...")
-            product_text = extract_text_from_image(product_image)
-            if product_text:
-                # Only extract expiry date if not already found
-                if 'expiry_date' not in extracted_data:
-                    expiry_date = parse_expiry_date_from_text(product_text)
+            ai_data = extract_text_from_image(expiry_label_image)
+            if ai_data:
+                # Extract expiry date
+                if ai_data.get('expiry_date'):
+                    extracted_data['expiry_date'] = ai_data['expiry_date']
+                elif ai_data.get('detected_text'):
+                    expiry_date = parse_expiry_date_from_text(ai_data['detected_text'])
                     if expiry_date:
                         extracted_data['expiry_date'] = expiry_date
-                        logger.info(f"Extracted expiry date from product image: {expiry_date}")
                 
-                # Extract product info
-                product_info = extract_product_info_from_text(product_text)
-                extracted_data.update(product_info)
+                # Extract other information from expiry label
+                if ai_data.get('detected_text'):
+                    product_info = extract_product_info_from_text(ai_data['detected_text'])
+                    extracted_data.update(product_info)
+        
+        # Process product image (secondary source of information)
+        if product_image:
+            logger.info("Processing product image...")
+            ai_data = extract_text_from_image(product_image)
+            if ai_data:
+                # Only extract expiry date if not already found
+                if 'expiry_date' not in extracted_data:
+                    if ai_data.get('expiry_date'):
+                        extracted_data['expiry_date'] = ai_data['expiry_date']
+                    elif ai_data.get('detected_text'):
+                        expiry_date = parse_expiry_date_from_text(ai_data['detected_text'])
+                        if expiry_date:
+                            extracted_data['expiry_date'] = expiry_date
+                
+                # Extract comprehensive product information
+                if ai_data.get('product_name') and ai_data['product_name'] != 'null':
+                    extracted_data['product_name'] = ai_data['product_name']
+                
+                if ai_data.get('barcode') and ai_data['barcode'] != 'null':
+                    extracted_data['barcode'] = ai_data['barcode']
+                
+                if ai_data.get('quantity') and ai_data['quantity'] != 'null':
+                    extracted_data['quantity'] = ai_data['quantity']
+                
+                if ai_data.get('unit') and ai_data['unit'] != 'null':
+                    extracted_data['unit'] = ai_data['unit']
+                
+                # Extract nutritional information from AI response
+                nutritional_fields = ['calories', 'protein', 'carbs', 'fat', 'fiber']
+                for field in nutritional_fields:
+                    if ai_data.get(field) and ai_data[field] != 'null':
+                        extracted_data[field] = ai_data[field]
+                
+                if ai_data.get('storage_instructions') and ai_data['storage_instructions'] != 'null':
+                    extracted_data['storage_instructions'] = ai_data['storage_instructions']
+                
+                # Fallback to text extraction if AI JSON parsing failed
+                if ai_data.get('detected_text'):
+                    product_info = extract_product_info_from_text(ai_data['detected_text'])
+                    # Only update fields that weren't already set by AI JSON
+                    for key, value in product_info.items():
+                        if key not in extracted_data or not extracted_data[key]:
+                            extracted_data[key] = value
         
         # Log what was extracted
         if extracted_data:
@@ -236,6 +438,25 @@ def enhance_pantry_item_with_ai(pantry_item_instance):
         
         if extracted_data.get('barcode') and not pantry_item_instance.barcode:
             pantry_item_instance.barcode = extracted_data['barcode']
+            updated = True
+        
+        # Update nutritional information if available
+        nutritional_fields = ['calories', 'protein', 'carbs', 'fat', 'fiber']
+        for field in nutritional_fields:
+            if extracted_data.get(field) and getattr(pantry_item_instance, field) == 0:
+                setattr(pantry_item_instance, field, extracted_data[field])
+                updated = True
+        
+        if extracted_data.get('quantity') and pantry_item_instance.quantity == 1.0:
+            pantry_item_instance.quantity = extracted_data['quantity']
+            updated = True
+        
+        if extracted_data.get('unit') and not pantry_item_instance.unit:
+            pantry_item_instance.unit = extracted_data['unit']
+            updated = True
+        
+        if extracted_data.get('storage_instructions') and not pantry_item_instance.storage_instructions:
+            pantry_item_instance.storage_instructions = extracted_data['storage_instructions']
             updated = True
         
         if updated:
