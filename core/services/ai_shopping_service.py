@@ -303,7 +303,7 @@ def confirm_shopping_list(user, shopping_list_id, purchased_items_payload, total
                     total_spent += actual_price or Decimal("0.00")
                     purchase_qty = sli.quantity or 0
 
-                    # Parse expiry date - FIX: Set default expiry date if not provided
+                    # Parse expiry date ,Set default expiry date if not provided
                     expiry_date = None
                     if p.get("expiry_date"):
                         try:
@@ -315,7 +315,7 @@ def confirm_shopping_list(user, shopping_list_id, purchased_items_payload, total
                         # Set default expiry date (7 days from now) if not provided
                         expiry_date = timezone.now().date() + timedelta(days=7)
 
-                    # Add to pantry only if purchased - FIX: Always provide expiry_date
+                    # Add to pantry only if purchased
                     UserPantry.objects.create(
                         user=user,
                         name=sli.item_name,
@@ -323,7 +323,7 @@ def confirm_shopping_list(user, shopping_list_id, purchased_items_payload, total
                         quantity=purchase_qty,
                         unit=sli.unit,
                         purchase_date=timezone.now().date(),
-                        expiry_date=expiry_date,  # Now always has a value
+                        expiry_date=expiry_date,  # 
                         price=actual_price or None,
                         status='active',
                         detection_source='manual'

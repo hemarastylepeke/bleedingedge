@@ -38,5 +38,8 @@ urlpatterns = [
     path('recipes/<int:recipe_id>/delete/', views.delete_recipe_view, name='delete_recipe'),
 
     path('analytics/food_waste/', views.food_waste_analytics_view, name='food_waste_analytics'),
+
+    # AI image processing endpoint
+     path('api/process-pantry-image/', process_pantry_image_api, name='process_pantry_image'),
     
 ]

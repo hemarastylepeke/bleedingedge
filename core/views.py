@@ -12,8 +12,10 @@ from django.db.models import Q
 from django.forms import formset_factory
 from core.services.recipe_suggestion_ai import generate_ai_recipe_from_openai, generate_multiple_ai_recipes
 from core.services.ai_shopping_service import generate_ai_shopping_list, confirm_shopping_list, detect_and_record_food_waste
+from core.services.ai_image_processing import process_pantry_item_images
 from decimal import Decimal
 from django.db import transaction
+import decimal
 
 def home_page_view(request):
     # If user is already authenticated, redirect to dashboard
@@ -258,7 +260,7 @@ def pantry_list_view(request):
 @login_required(login_url='account_login')
 def add_pantry_item_view(request):
     """
-    Add new item to pantry via form
+    Add new item to pantry via form with AI image processing
     """
     if request.method == 'POST':
         form = PantryItemForm(request.POST, request.FILES)
@@ -267,12 +269,66 @@ def add_pantry_item_view(request):
             pantry_item.user = request.user
             
             # Handle image uploads
+            product_image = None
+            expiry_label_image = None
+            
             if 'product_image' in request.FILES:
                 pantry_item.product_image = request.FILES['product_image']
+                product_image = request.FILES['product_image']
+            
             if 'expiry_label_image' in request.FILES:
                 pantry_item.expiry_label_image = request.FILES['expiry_label_image']
+                expiry_label_image = request.FILES['expiry_label_image']
             
+            # Save the item first to get an ID
             pantry_item.save()
+            
+            # Process images with AI in background (you might want to use Celery for this)
+            try:
+               
+                # Get current form data
+                current_data = {
+                    'name': pantry_item.name,
+                    'expiry_date': pantry_item.expiry_date,
+                    'barcode': pantry_item.barcode,
+                }
+                
+                # Process images and get AI-extracted data
+                ai_data = process_pantry_item_images(
+                    product_image=product_image,
+                    expiry_label_image=expiry_label_image,
+                    current_data=current_data
+                )
+                
+                # Update the item with AI data (only if fields are empty)
+                updated = False
+                
+                # Update expiry date if AI found one and form didn't have one
+                if ai_data.get('expiry_date') and not pantry_item.expiry_date:
+                    pantry_item.expiry_date = ai_data['expiry_date']
+                    updated = True
+                
+                # Update product name if AI found one and form name was generic
+                if (ai_data.get('product_name') and 
+                    pantry_item.name and 
+                    len(pantry_item.name.strip()) < 3):  # If name was too short/generic
+                    pantry_item.name = ai_data['product_name']
+                    updated = True
+                
+                # Update barcode if AI found one
+                if ai_data.get('barcode') and not pantry_item.barcode:
+                    pantry_item.barcode = ai_data['barcode']
+                    updated = True
+                
+                if updated:
+                    pantry_item.save()
+                    messages.info(request, f'AI enhanced {pantry_item.name} with data from images!')
+                
+            except Exception as e:
+                # Don't fail the whole process if AI processing fails
+                print(f"AI image processing failed: {str(e)}")
+                # You might want to log this instead of showing to user
+            
             messages.success(request, f'{pantry_item.name} added to pantry!')
             return redirect('pantry_list')
         else:
@@ -671,7 +727,7 @@ def shopping_list_detail_view(request, list_id):
         # Collect all purchased items and calculate total cost
         for sli in items_qs:
             prefix_id = str(sli.id)
-            # FIX: Check if checkbox exists in POST data (means it's checked)
+            # Check if checkbox exists in POST data
             purchased_flag = f"purchased_{prefix_id}" in request.POST
             
             if purchased_flag:
@@ -1077,3 +1133,35 @@ def food_waste_analytics_view(request):
     }
 
     return render(request, "core/food_waste_analytics.html", context)
+
+@login_required(login_url='account_login')
+def process_pantry_image_api(request):
+    """
+    API endpoint for real-time AI image processing
+    """
+    if request.method == 'POST' and request.FILES.get('image'):
+        try:
+            image_file = request.FILES['image']
+            image_type = request.POST.get('image_type', 'product')
+            
+            # Process the image
+            if image_type == 'expiry':
+                ai_data = process_pantry_item_images(expiry_label_image=image_file)
+            else:
+                ai_data = process_pantry_item_images(product_image=image_file)
+            
+            return JsonResponse({
+                'success': True,
+                'extracted_data': ai_data
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'No image provided'
+    })
