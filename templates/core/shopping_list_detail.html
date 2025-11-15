@@ -79,28 +79,26 @@
     <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
       <h3 class="text-xl font-semibold text-gray-800 mb-4">Shopping Progress</h3>
       <div class="flex items-center justify-between mb-4">
-        <span class="text-gray-600">
+        <span class="text-gray-600" id="progressText">
           {{ purchased_items }}/{{ total_items }} items purchased
         </span>
-        <span class="font-medium text-green-600">{{ purchased_percentage|floatformat:0 }}%</span>
+        <span class="font-medium text-green-600" id="progressPercentage">{{ purchased_percentage|floatformat:0 }}%</span>
       </div>
       <div class="w-full bg-gray-200 rounded-full h-3">
-        <div class="bg-green-500 h-3 rounded-full transition-all duration-500"
+        <div class="bg-green-500 h-3 rounded-full transition-all duration-500" id="progressBar"
              style="width: {{ purchased_percentage }}%"></div>
       </div>
     </div>
 
     <!-- ====== High Priority Items ====== -->
-    {% if high_priority_items %}
-    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6" id="highPrioritySection" {% if not high_priority_items %}style="display: none;"{% endif %}>
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-xl font-semibold text-gray-800">High Priority Items</h3>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800" id="highPriorityCount">
           {{ high_priority_items.count }} items
         </span>
       </div>
-
-      <div class="space-y-3">
+      <div class="space-y-3" id="highPriorityItems">
         {% for item in high_priority_items %}
         <div class="flex flex-col md:flex-row md:items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
           <div class="flex items-center space-x-4">
@@ -153,19 +151,16 @@
         {% endfor %}
       </div>
     </div>
-    {% endif %}
 
     <!-- ====== Medium Priority Items ====== -->
-    {% if medium_priority_items %}
-    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6" id="mediumPrioritySection" {% if not medium_priority_items %}style="display: none;"{% endif %}>
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-xl font-semibold text-gray-800">Medium Priority Items</h3>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800" id="mediumPriorityCount">
           {{ medium_priority_items.count }} items
         </span>
       </div>
-
-      <div class="space-y-3">
+      <div class="space-y-3" id="mediumPriorityItems">
         {% for item in medium_priority_items %}
         <div class="flex flex-col md:flex-row md:items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200">
           <div class="flex items-center space-x-4">
@@ -202,19 +197,16 @@
         {% endfor %}
       </div>
     </div>
-    {% endif %}
 
     <!-- ====== Low Priority Items ====== -->
-    {% if low_priority_items %}
-    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6" id="lowPrioritySection" {% if not low_priority_items %}style="display: none;"{% endif %}>
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-xl font-semibold text-gray-800">Low Priority Items</h3>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800" id="lowPriorityCount">
           {{ low_priority_items.count }} items
         </span>
       </div>
-
-      <div class="space-y-3">
+      <div class="space-y-3" id="lowPriorityItems">
         {% for item in low_priority_items %}
         <div class="flex flex-col md:flex-row md:items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
           <div class="flex items-center space-x-4">
@@ -251,7 +243,6 @@
         {% endfor %}
       </div>
     </div>
-    {% endif %}
   </form>
 
   <!-- ====== Add Custom Items ====== -->
@@ -267,7 +258,7 @@
         <!-- Item Name -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Item Name</label>
-          <input type="text" name="item_name" required
+          <input type="text" name="item_name" required id="itemName"
                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                  placeholder="Enter item name">
         </div>
@@ -275,7 +266,7 @@
         <!-- Quantity -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-          <input type="number" name="quantity" step="0.01" min="0" required
+          <input type="number" name="quantity" step="0.01" min="0" required id="itemQuantity"
                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                  placeholder="0.00" value="1">
         </div>
@@ -283,7 +274,7 @@
         <!-- Unit -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Unit</label>
-          <input type="text" name="unit" required
+          <input type="text" name="unit" required id="itemUnit"
                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                  placeholder="g, ml, pieces" value="g">
         </div>
@@ -291,7 +282,7 @@
         <!-- Estimated Price -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Estimated Price (£)</label>
-          <input type="number" name="estimated_price" step="0.01" min="0" required
+          <input type="number" name="estimated_price" step="0.01" min="0" required id="itemPrice"
                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                  placeholder="0.00">
         </div>
@@ -301,7 +292,7 @@
         <!-- Category -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-          <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+          <select name="category" id="itemCategory" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
             <option value="other">Other</option>
             <option value="vegetables">Vegetables</option>
             <option value="fruits">Fruits</option>
@@ -322,7 +313,7 @@
         <!-- Priority -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-          <select name="priority" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+          <select name="priority" id="itemPriority" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
             <option value="low">Low Priority</option>
             <option value="medium" selected>Medium Priority</option>
             <option value="high">High Priority</option>
@@ -333,7 +324,7 @@
       <!-- Reason -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">Reason (Optional)</label>
-        <input type="text" name="reason"
+        <input type="text" name="reason" id="itemReason"
                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                placeholder="Why do you need this item?">
       </div>
@@ -341,7 +332,7 @@
       <!-- Notes -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
-        <textarea name="notes" rows="2"
+        <textarea name="notes" rows="2" id="itemNotes"
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-vertical"
                   placeholder="Any additional notes..."></textarea>
       </div>
@@ -410,29 +401,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Auto-calculate purchased percentage when checkboxes are clicked
-    const checkboxes = document.querySelectorAll('input[type="checkbox"][name^="purchased_"]');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateProgress);
-    });
-
     function updateProgress() {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][name^="purchased_"]');
         const totalItems = checkboxes.length;
         const purchasedItems = Array.from(checkboxes).filter(cb => cb.checked).length;
         const percentage = totalItems > 0 ? (purchasedItems / totalItems) * 100 : 0;
         
         // Update progress bar
-        const progressBar = document.querySelector('.bg-green-500.h-3');
+        const progressBar = document.getElementById('progressBar');
         if (progressBar) {
             progressBar.style.width = percentage + '%';
         }
         
         // Update text
-        const progressText = document.querySelector('.text-gray-600');
+        const progressText = document.getElementById('progressText');
         if (progressText) {
             progressText.textContent = purchasedItems + '/' + totalItems + ' items purchased';
         }
         
-        const percentageText = document.querySelector('.font-medium.text-green-600');
+        const percentageText = document.getElementById('progressPercentage');
         if (percentageText) {
             percentageText.textContent = Math.round(percentage) + '%';
         }
@@ -454,27 +441,25 @@ document.addEventListener('DOMContentLoaded', function() {
     if (customItemForm) {
         // Regular form submission
         customItemForm.addEventListener('submit', function(e) {
-            if (!validateCustomItemForm()) {
-                e.preventDefault();
-                return;
+            e.preventDefault();
+            if (validateCustomItemForm()) {
+                submitCustomItemForm(false);
             }
         });
 
         // Quick add another functionality
         quickAddAnotherBtn.addEventListener('click', function() {
             if (validateCustomItemForm()) {
-                // Submit the form via AJAX to avoid page reload
                 submitCustomItemForm(true);
             }
         });
     }
 
     function validateCustomItemForm() {
-        const form = customItemForm;
-        const itemName = form.querySelector('input[name="item_name"]');
-        const quantity = form.querySelector('input[name="quantity"]');
-        const unit = form.querySelector('input[name="unit"]');
-        const estimatedPrice = form.querySelector('input[name="estimated_price"]');
+        const itemName = document.getElementById('itemName');
+        const quantity = document.getElementById('itemQuantity');
+        const unit = document.getElementById('itemUnit');
+        const estimatedPrice = document.getElementById('itemPrice');
         
         let isValid = true;
         
@@ -503,35 +488,152 @@ document.addEventListener('DOMContentLoaded', function() {
         const form = customItemForm;
         const formData = new FormData(form);
         
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const quickAddBtn = document.getElementById('quickAddAnother');
+        const originalSubmitText = submitBtn.innerHTML;
+        const originalQuickAddText = quickAddBtn.innerHTML;
+        
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding...';
+        quickAddBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding...';
+        submitBtn.disabled = true;
+        quickAddBtn.disabled = true;
+        
         fetch('', {
             method: 'POST',
             body: formData,
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
+                // Add the new item to the appropriate priority section
+                addItemToPrioritySection(data.item);
+                
+                // Update progress
+                updateProgress();
+                
                 if (quickAdd) {
                     // Clear the form for next item
                     form.reset();
                     // Show success message
                     showToast('Item added successfully! You can add another item.', 'success');
                     // Focus on the first field
-                    form.querySelector('input[name="item_name"]').focus();
+                    document.getElementById('itemName').focus();
                 } else {
-                    // Regular form submission - redirect
-                    window.location.reload();
+                    // Show success message
+                    showToast('Item added successfully!', 'success');
                 }
             } else {
-                alert('Error adding item: ' + (data.message || 'Please try again.'));
+                let errorMessage = 'Error adding item: ' + (data.message || 'Please try again.');
+                if (data.errors) {
+                    errorMessage += '\n' + JSON.stringify(data.errors);
+                }
+                alert(errorMessage);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error adding item. Please try again.');
+            alert('Error adding item. Please check your connection and try again.');
+        })
+        .finally(() => {
+            // Restore button states
+            submitBtn.innerHTML = originalSubmitText;
+            quickAddBtn.innerHTML = originalQuickAddText;
+            submitBtn.disabled = false;
+            quickAddBtn.disabled = false;
         });
+    }
+
+    function addItemToPrioritySection(item) {
+        const priority = item.priority;
+        const sectionId = priority + 'PriorityItems';
+        const sectionElement = document.getElementById(sectionId);
+        const sectionContainer = document.getElementById(priority + 'PrioritySection');
+        const countElement = document.getElementById(priority + 'PriorityCount');
+        
+        // Show the section if it was hidden
+        if (sectionContainer.style.display === 'none') {
+            sectionContainer.style.display = 'block';
+        }
+        
+        // Get priority classes
+        const priorityClasses = {
+            'high': 'bg-red-50 border border-red-200',
+            'medium': 'bg-yellow-50 border border-yellow-200',
+            'low': 'bg-green-50 border border-green-200'
+        };
+        
+        const checkboxClasses = {
+            'high': 'text-red-600 border-red-300 focus:ring-red-500',
+            'medium': 'text-yellow-600 border-yellow-300 focus:ring-yellow-500',
+            'low': 'text-green-600 border-green-300 focus:ring-green-600'
+        };
+        
+        // Create the new item HTML - AUTO CHECKED by default
+        const newItemHtml = `
+            <div class="flex flex-col md:flex-row md:items-center justify-between p-4 ${priorityClasses[priority]} rounded-lg">
+                <div class="flex items-center space-x-4">
+                    <input type="checkbox" name="purchased_${item.id}" checked
+                           class="w-5 h-5 ${checkboxClasses[priority]} rounded focus:ring-2">
+                    <div>
+                        <h4 class="font-medium text-gray-800">${item.item_name}</h4>
+                        <p class="text-sm text-gray-600">${item.quantity} ${item.unit}</p>
+                        ${item.category && item.category !== 'other' ? `
+                        <span class="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full mt-1">
+                            ${item.get_category_display}
+                        </span>
+                        ` : ''}
+                        ${item.reason ? `<p class="text-xs text-gray-500 mt-1">${item.reason}</p>` : ''}
+                        ${item.notes ? `<p class="text-xs text-gray-400 mt-1">${item.notes}</p>` : ''}
+                    </div>
+                </div>
+                <div class="mt-3 md:mt-0 text-right space-y-2">
+                    <div>
+                        <span class="font-medium text-gray-800">£${parseFloat(item.estimated_price).toFixed(2)}</span>
+                    </div>
+                    <div class="flex space-x-2 justify-end">
+                        <input type="number" step="0.01" min="0" name="actual_price_${item.id}" 
+                               placeholder="Actual £" value="${parseFloat(item.estimated_price).toFixed(2)}"
+                               class="w-28 border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                        ${priority === 'high' ? `
+                        <input type="number" step="0.01" min="0" name="purchased_qty_${item.id}" 
+                               placeholder="Qty" value="${item.quantity}"
+                               class="w-20 border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                        ` : ''}
+                    </div>
+                    <div class="flex space-x-2 justify-end">
+                        <input type="date" name="expiry_date_${item.id}" 
+                               class="border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                               min="${today}" />
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add the new item to the section
+        sectionElement.insertAdjacentHTML('beforeend', newItemHtml);
+        
+        // Update the count
+        const currentCount = parseInt(countElement.textContent) || 0;
+        countElement.textContent = (currentCount + 1) + ' items';
+        
+        // Add event listener to the new checkbox
+        const newCheckbox = sectionElement.querySelector(`input[name="purchased_${item.id}"]`);
+        if (newCheckbox) {
+            newCheckbox.addEventListener('change', updateProgress);
+        }
+        
+        // Trigger progress update since the item is automatically checked
+        updateProgress();
     }
 
     function showToast(message, type = 'info') {
@@ -539,14 +641,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const toast = document.createElement('div');
         toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg text-white ${
             type === 'success' ? 'bg-green-500' : 'bg-blue-500'
-        } z-50`;
+        } z-50 transition-all duration-300 transform translate-x-full`;
         toast.textContent = message;
         
         document.body.appendChild(toast);
         
+        // Animate in
+        setTimeout(() => {
+            toast.classList.remove('translate-x-full');
+            toast.classList.add('translate-x-0');
+        }, 100);
+        
         // Remove toast after 3 seconds
         setTimeout(() => {
-            toast.remove();
+            toast.classList.remove('translate-x-0');
+            toast.classList.add('translate-x-full');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
         }, 3000);
     }
 
@@ -561,4 +673,3 @@ document.addEventListener('DOMContentLoaded', function() {
     updateProgress();
 });
 </script>
-{% endblock %}
