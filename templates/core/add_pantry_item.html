@@ -523,7 +523,7 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// Enhanced AI image processing with proper error handling
+// Enhanced AI image processing with comprehensive error handling
 async function processImageWithAI(imageFile) {
     const formData = new FormData();
     formData.append('image', imageFile);
@@ -538,34 +538,41 @@ async function processImageWithAI(imageFile) {
             }
         });
         
+        const data = await response.json();
+        
+        // Check HTTP status first - these indicate server-side errors
         if (!response.ok) {
-            // Handle HTTP errors
             if (response.status === 429) {
-                throw new Error('Rate limit exceeded. Please try again later.');
+                throw new Error(data.error || 'AI service rate limit exceeded. Please try again in a few minutes.');
+            } else if (response.status === 503) {
+                throw new Error(data.error || 'Network error. Please check your connection and try again.');
             } else if (response.status >= 500) {
-                throw new Error('Server error. Please try again.');
+                throw new Error(data.error || 'AI processing failed. Please try again or enter details manually.');
+            } else if (response.status === 400) {
+                throw new Error(data.error || 'No image provided or invalid request.');
             } else {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(data.error || `Server error (${response.status}). Please try again.`);
             }
         }
         
-        const data = await response.json();
-        
-        // Check if the backend returned an error
+        // Then check if the processing was successful (200 status but success: false)
         if (!data.success) {
-            throw new Error(data.error || 'AI processing failed');
+            throw new Error(data.error || 'No data could be extracted from the image');
         }
         
         return data;
     } catch (error) {
         console.error('AI processing error:', error);
         
-        // Re-throw with appropriate message
+        // Re-throw with appropriate message for frontend display
         if (error.message.includes('Failed to fetch')) {
-            throw new Error('Network error. Please check your connection.');
+            throw new Error('Network error. Please check your internet connection and try again.');
         } else if (error.message.includes('rate limit')) {
-            throw new Error('AI service temporarily unavailable due to rate limits.');
+            throw new Error('AI service temporarily unavailable due to rate limits. Please try again in a few minutes.');
+        } else if (error.message.includes('Network error') || error.message.includes('connection')) {
+            throw new Error('Network error. Please check your connection and try again.');
         } else {
+            // Pass through the backend error message directly
             throw error;
         }
     }
@@ -649,141 +656,135 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Process with AI
                 const response = await processImageWithAI(file);
                 
-                // Check if AI processing was actually successful
-                if (response && response.success) {
-                    const aiData = response.extracted_data;
+                // If we get here, AI processing was successful
+                const aiData = response.extracted_data;
+                
+                // Update UI for success
+                container.classList.remove('processing');
+                container.classList.add('success');
+                
+                // Show image preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    contentDiv.innerHTML = `
+                        <div class="relative">
+                            <img src="${e.target.result}" class="w-20 h-20 object-cover rounded-lg mx-auto mb-2 border-2 border-green-200">
+                            <p class="text-sm font-medium text-gray-700 truncate">${file.name}</p>
+                            <p class="text-xs text-green-600 mt-1">AI analysis complete!</p>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+                
+                // Auto-fill form fields with AI data
+                let filledFields = [];
+                
+                // Product Name
+                const nameField = document.querySelector('input[name="name"]');
+                if (aiData.product_name && nameField && (!nameField.value || nameField.value.trim().length < 3)) {
+                    nameField.value = aiData.product_name;
+                    filledFields.push(`Product name: ${aiData.product_name}`);
+                }
+                
+                // Expiry Date - ALWAYS override if AI detects a valid date
+                if (aiData.expiry_date) {
+                    const expiryField = document.querySelector('input[name="expiry_date"]');
+                    if (expiryField) {
+                        expiryField.value = aiData.expiry_date;
+                        filledFields.push(`Expiry date: ${aiData.expiry_date}`);
+                    }
+                }
+                
+                // Barcode
+                if (aiData.barcode) {
+                    const barcodeField = document.querySelector('input[name="barcode"]');
+                    if (barcodeField && !barcodeField.value) {
+                        barcodeField.value = aiData.barcode;
+                        filledFields.push(`Barcode: ${aiData.barcode}`);
+                    }
+                }
+                
+                // Quantity - only override default value (1.0)
+                if (aiData.quantity) {
+                    const quantityField = document.querySelector('input[name="quantity"]');
+                    if (quantityField && parseFloat(quantityField.value) === 1.0) {
+                        quantityField.value = aiData.quantity;
+                        filledFields.push(`Quantity: ${aiData.quantity}`);
+                    }
+                }
+                
+                // Unit
+                if (aiData.unit) {
+                    const unitField = document.querySelector('input[name="unit"]');
+                    if (unitField && !unitField.value) {
+                        unitField.value = aiData.unit;
+                        filledFields.push(`Unit: ${aiData.unit}`);
+                    }
+                }
+                
+                // Nutritional Information
+                const nutritionalFields = {
+                    'calories': 'calories',
+                    'protein': 'protein', 
+                    'carbs': 'carbs',
+                    'fat': 'fat',
+                    'fiber': 'fiber'
+                };
+                
+                for (const [field, value] of Object.entries(nutritionalFields)) {
+                    if (aiData[field]) {
+                        const nutritionField = document.querySelector(`input[name="${value}"]`);
+                        if (nutritionField && (parseFloat(nutritionField.value) === 0 || !nutritionField.value)) {
+                            nutritionField.value = aiData[field];
+                            filledFields.push(`${field}: ${aiData[field]}`);
+                        }
+                    }
+                }
+                
+                // Storage Instructions
+                if (aiData.storage_instructions) {
+                    const storageField = document.querySelector('textarea[name="storage_instructions"]');
+                    if (storageField && !storageField.value) {
+                        storageField.value = aiData.storage_instructions;
+                        filledFields.push(`Storage instructions`);
+                    }
+                }
+                
+                // Category Detection
+                if (aiData.product_name && !document.querySelector('select[name="category"]').value) {
+                    const categoryField = document.querySelector('select[name="category"]');
+                    const productName = aiData.product_name.toLowerCase();
                     
-                    // Update UI for success
-                    container.classList.remove('processing');
-                    container.classList.add('success');
-                    
-                    // Show image preview
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        contentDiv.innerHTML = `
-                            <div class="relative">
-                                <img src="${e.target.result}" class="w-20 h-20 object-cover rounded-lg mx-auto mb-2 border-2 border-green-200">
-                                <p class="text-sm font-medium text-gray-700 truncate">${file.name}</p>
-                                <p class="text-xs text-green-600 mt-1">AI analysis complete!</p>
-                            </div>
-                        `;
+                    const categoryMap = {
+                        'vegetables': ['broccoli', 'carrot', 'spinach', 'lettuce', 'tomato', 'onion', 'potato', 'cabbage', 'cauliflower'],
+                        'fruits': ['apple', 'banana', 'orange', 'grape', 'berry', 'mango', 'pineapple', 'pear', 'peach'],
+                        'dairy': ['milk', 'cheese', 'yogurt', 'butter', 'cream', 'egg', 'yoghurt', 'dairy'],
+                        'meat': ['chicken', 'beef', 'pork', 'lamb', 'steak', 'bacon', 'sausage', 'mince'],
+                        'grains': ['rice', 'pasta', 'bread', 'flour', 'cereal', 'oat', 'wheat', 'barley'],
+                        'beverages': ['juice', 'soda', 'water', 'coffee', 'tea', 'wine', 'beer', 'drink']
                     };
-                    reader.readAsDataURL(file);
                     
-                    // Auto-fill form fields with AI data
-                    let filledFields = [];
-                    
-                    // Product Name
-                    const nameField = document.querySelector('input[name="name"]');
-                    if (aiData.product_name && nameField && (!nameField.value || nameField.value.trim().length < 3)) {
-                        nameField.value = aiData.product_name;
-                        filledFields.push(`Product name: ${aiData.product_name}`);
-                    }
-                    
-                    // Expiry Date - ALWAYS override if AI detects a valid date (FIXED)
-                    if (aiData.expiry_date) {
-                        const expiryField = document.querySelector('input[name="expiry_date"]');
-                        if (expiryField) {
-                            expiryField.value = aiData.expiry_date;
-                            filledFields.push(`Expiry date: ${aiData.expiry_date}`);
+                    for (const [category, keywords] of Object.entries(categoryMap)) {
+                        if (keywords.some(keyword => productName.includes(keyword))) {
+                            categoryField.value = category;
+                            filledFields.push(`Category: ${category}`);
+                            break;
                         }
                     }
+                }
+                
+                // Show success message
+                if (filledFields.length > 0) {
+                    const fieldCount = filledFields.length;
+                    showAIToast(`AI filled ${fieldCount} field${fieldCount > 1 ? 's' : ''} automatically!`, 'success');
                     
-                    // Barcode
-                    if (aiData.barcode) {
-                        const barcodeField = document.querySelector('input[name="barcode"]');
-                        if (barcodeField && !barcodeField.value) {
-                            barcodeField.value = aiData.barcode;
-                            filledFields.push(`Barcode: ${aiData.barcode}`);
-                        }
+                    if (fieldCount > 3) {
+                        setTimeout(() => {
+                            showAIToast('Review and adjust the auto-filled information as needed', 'info');
+                        }, 2000);
                     }
-                    
-                    // Quantity - only override default value (1.0)
-                    if (aiData.quantity) {
-                        const quantityField = document.querySelector('input[name="quantity"]');
-                        if (quantityField && parseFloat(quantityField.value) === 1.0) {
-                            quantityField.value = aiData.quantity;
-                            filledFields.push(`Quantity: ${aiData.quantity}`);
-                        }
-                    }
-                    
-                    // Unit
-                    if (aiData.unit) {
-                        const unitField = document.querySelector('input[name="unit"]');
-                        if (unitField && !unitField.value) {
-                            unitField.value = aiData.unit;
-                            filledFields.push(`Unit: ${aiData.unit}`);
-                        }
-                    }
-                    
-                    // Nutritional Information
-                    const nutritionalFields = {
-                        'calories': 'calories',
-                        'protein': 'protein', 
-                        'carbs': 'carbs',
-                        'fat': 'fat',
-                        'fiber': 'fiber'
-                    };
-                    
-                    for (const [field, value] of Object.entries(nutritionalFields)) {
-                        if (aiData[field]) {
-                            const nutritionField = document.querySelector(`input[name="${value}"]`);
-                            if (nutritionField && (parseFloat(nutritionField.value) === 0 || !nutritionField.value)) {
-                                nutritionField.value = aiData[field];
-                                filledFields.push(`${field}: ${aiData[field]}`);
-                            }
-                        }
-                    }
-                    
-                    // Storage Instructions
-                    if (aiData.storage_instructions) {
-                        const storageField = document.querySelector('textarea[name="storage_instructions"]');
-                        if (storageField && !storageField.value) {
-                            storageField.value = aiData.storage_instructions;
-                            filledFields.push(`Storage instructions`);
-                        }
-                    }
-                    
-                    // Category Detection
-                    if (aiData.product_name && !document.querySelector('select[name="category"]').value) {
-                        const categoryField = document.querySelector('select[name="category"]');
-                        const productName = aiData.product_name.toLowerCase();
-                        
-                        const categoryMap = {
-                            'vegetables': ['broccoli', 'carrot', 'spinach', 'lettuce', 'tomato', 'onion', 'potato', 'cabbage', 'cauliflower'],
-                            'fruits': ['apple', 'banana', 'orange', 'grape', 'berry', 'mango', 'pineapple', 'pear', 'peach'],
-                            'dairy': ['milk', 'cheese', 'yogurt', 'butter', 'cream', 'egg', 'yoghurt', 'dairy'],
-                            'meat': ['chicken', 'beef', 'pork', 'lamb', 'steak', 'bacon', 'sausage', 'mince'],
-                            'grains': ['rice', 'pasta', 'bread', 'flour', 'cereal', 'oat', 'wheat', 'barley'],
-                            'beverages': ['juice', 'soda', 'water', 'coffee', 'tea', 'wine', 'beer', 'drink']
-                        };
-                        
-                        for (const [category, keywords] of Object.entries(categoryMap)) {
-                            if (keywords.some(keyword => productName.includes(keyword))) {
-                                categoryField.value = category;
-                                filledFields.push(`Category: ${category}`);
-                                break;
-                            }
-                        }
-                    }
-                    
-                    // Show success message
-                    if (filledFields.length > 0) {
-                        const fieldCount = filledFields.length;
-                        showAIToast(`AI filled ${fieldCount} field${fieldCount > 1 ? 's' : ''} automatically!`, 'success');
-                        
-                        if (fieldCount > 3) {
-                            setTimeout(() => {
-                                showAIToast('Review and adjust the auto-filled information as needed', 'info');
-                            }, 2000);
-                        }
-                    } else {
-                        showAIToast('Image processed successfully - all fields already filled', 'info');
-                    }
-                    
                 } else {
-                    // AI processing returned but wasn't successful
-                    throw new Error(response?.error || 'AI processing failed');
+                    showAIToast('Image processed successfully - all fields already filled', 'info');
                 }
                 
             } catch (error) {
@@ -808,12 +809,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 reader.readAsDataURL(file);
                 
                 // Show appropriate error message based on error type
-                if (error.message.includes('rate limit') || error.message.includes('429')) {
-                    showAIToast('AI service temporarily unavailable. Please fill details manually.', 'warning');
-                } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                const errorMessage = error.message;
+                
+                if (errorMessage.includes('rate limit') || errorMessage.includes('429')) {
+                    showAIToast('AI service temporarily unavailable due to rate limits. Please try again in a few minutes.', 'warning');
+                } else if (errorMessage.includes('Network error') || errorMessage.includes('connection') || errorMessage.includes('503')) {
                     showAIToast('Network error. Please check your connection and try again.', 'error');
+                } else if (errorMessage.includes('No data could be extracted') || errorMessage.includes('No image provided')) {
+                    showAIToast('Could not extract information from this image. Please try a clearer photo or enter details manually.', 'warning');
+                } else if (errorMessage.includes('AI processing failed') || errorMessage.includes('500')) {
+                    showAIToast('AI processing failed. Please try again or enter details manually.', 'warning');
                 } else {
-                    showAIToast('AI analysis failed. Please fill details manually.', 'warning');
+                    // Show the specific backend error message
+                    showAIToast(errorMessage, 'warning');
                 }
             }
         } else {

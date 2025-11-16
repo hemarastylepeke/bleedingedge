@@ -1150,27 +1150,38 @@ def process_pantry_image_api(request):
             else:
                 ai_data = process_pantry_item_images(product_image=image_file)
             
-            return JsonResponse({
-                'success': True,
-                'extracted_data': ai_data
-            })
+            # Check if we actually got any data (not just empty dict)
+            if ai_data and any(value for value in ai_data.values() if value):
+                return JsonResponse({
+                    'success': True,
+                    'extracted_data': ai_data
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'No data could be extracted from the image'
+                }, status=200)
             
         except Exception as e:
             error_message = str(e)
             print(f"AI image processing error: {error_message}")
             
-            # Determine appropriate status code based on error type
-            if 'rate limit' in error_message.lower() or '429' in error_message:
-                status_code = 429
-            elif 'network' in error_message.lower() or 'connection' in error_message.lower():
-                status_code = 503
+            # Check for specific error patterns
+            if any(pattern in error_message for pattern in ['rate limit', '429', 'RateLimitError']):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'AI service rate limit exceeded. Please try again in a few minutes.'
+                }, status=429)
+            elif any(pattern in error_message for pattern in ['network', 'connection', 'timeout']):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Network error. Please check your connection and try again.'
+                }, status=503)
             else:
-                status_code = 500
-                
-            return JsonResponse({
-                'success': False,
-                'error': error_message
-            }, status=status_code)
+                return JsonResponse({
+                    'success': False,
+                    'error': 'AI processing failed. Please try again or enter details manually.'
+                }, status=500)
     
     return JsonResponse({
         'success': False,
