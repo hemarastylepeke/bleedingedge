@@ -48,7 +48,7 @@ def extract_text_from_image(image_file):
             "detected_text": "all raw text found in image"
         }
         
-        Only return valid JSON, no other text.
+        Only return valid JSON, no other text. Do not wrap the response in markdown code blocks.
         """
         
         response = openai.chat.completions.create(
@@ -73,19 +73,57 @@ def extract_text_from_image(image_file):
         extracted_text = response.choices[0].message.content.strip()
         logger.info(f"Raw AI response: {extracted_text}")
         
+        # Check if the response looks like an error message first
+        if any(error_indicator in extracted_text.lower() for error_indicator in [
+            'error', 'rate limit', 'quota', 'exceeded', 'invalid', 'unauthorized', 
+            'billing', 'payment', 'overloaded', 'busy', 'try again'
+        ]):
+            logger.error(f"AI returned error message: {extracted_text}")
+            raise Exception(f"AI service error: {extracted_text}")
+        
+        # Clean the response - remove markdown code blocks if present
+        cleaned_text = extracted_text
+        
+        # Remove ```json and ``` wrappers
+        if cleaned_text.startswith('```json'):
+            cleaned_text = cleaned_text[7:]  # 
+        elif cleaned_text.startswith('```'):
+            cleaned_text = cleaned_text[3:]  # 
+        
+        if cleaned_text.endswith('```'):
+            cleaned_text = cleaned_text[:-3]  # 
+        
+        cleaned_text = cleaned_text.strip()
+        
         # Parse JSON response
         try:
             import json
-            extracted_data = json.loads(extracted_text)
+            extracted_data = json.loads(cleaned_text)
             return extracted_data
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse AI JSON response: {e}")
-            # Fallback to text extraction
-            return {"detected_text": extracted_text}
+            logger.error(f"Raw response that failed to parse: {extracted_text}")
+            logger.error(f"Cleaned response: {cleaned_text}")
+            
+            # If it's not JSON, check if it's still useful text
+            if extracted_text and len(extracted_text) > 10:
+                # Fallback: treat it as detected text
+                return {"detected_text": extracted_text}
+            else:
+                raise Exception("AI returned invalid response format")
         
+    except openai.RateLimitError as e:
+        logger.error(f"OpenAI rate limit error: {str(e)}")
+        raise Exception(f"Rate limit exceeded: {str(e)}")
+    except openai.APIError as e:
+        logger.error(f"OpenAI API error: {str(e)}")
+        raise Exception(f"AI service error: {str(e)}")
+    except openai.AuthenticationError as e:
+        logger.error(f"OpenAI authentication error: {str(e)}")
+        raise Exception(f"AI authentication failed: {str(e)}")
     except Exception as e:
         logger.error(f"Error extracting text from image: {str(e)}")
-        return None
+        raise Exception(f"Image processing failed: {str(e)}")
 
 def parse_expiry_date_from_text(text):
     """

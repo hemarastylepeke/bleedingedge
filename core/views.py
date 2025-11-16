@@ -1150,8 +1150,8 @@ def process_pantry_image_api(request):
             else:
                 ai_data = process_pantry_item_images(product_image=image_file)
             
-            # Check if we actually got any data (not just empty dict)
-            if ai_data and any(value for value in ai_data.values() if value):
+            # Check if we actually got any useful data
+            if ai_data and any(value for value in ai_data.values() if value and value != 'null'):
                 return JsonResponse({
                     'success': True,
                     'extracted_data': ai_data
@@ -1159,7 +1159,7 @@ def process_pantry_image_api(request):
             else:
                 return JsonResponse({
                     'success': False,
-                    'error': 'No data could be extracted from the image'
+                    'error': 'No usable data could be extracted from the image. Please try a clearer photo or enter details manually.'
                 }, status=200)
             
         except Exception as e:
@@ -1167,16 +1167,26 @@ def process_pantry_image_api(request):
             print(f"AI image processing error: {error_message}")
             
             # Check for specific error patterns
-            if any(pattern in error_message for pattern in ['rate limit', '429', 'RateLimitError']):
+            if any(pattern in error_message.lower() for pattern in ['rate limit', '429', 'ratelimiterror', 'quota', 'billing']):
                 return JsonResponse({
                     'success': False,
                     'error': 'AI service rate limit exceeded. Please try again in a few minutes.'
                 }, status=429)
-            elif any(pattern in error_message for pattern in ['network', 'connection', 'timeout']):
+            elif any(pattern in error_message.lower() for pattern in ['network', 'connection', 'timeout']):
                 return JsonResponse({
                     'success': False,
                     'error': 'Network error. Please check your connection and try again.'
                 }, status=503)
+            elif any(pattern in error_message.lower() for pattern in ['authentication', 'invalid api', 'unauthorized']):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'AI service configuration error. Please contact support.'
+                }, status=500)
+            elif any(pattern in error_message.lower() for pattern in ['invalid response', 'json']):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'AI service returned unexpected response. Please try again.'
+                }, status=500)
             else:
                 return JsonResponse({
                     'success': False,
