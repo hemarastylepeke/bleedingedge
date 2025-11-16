@@ -422,6 +422,12 @@ select {
     border-style: solid;
 }
 
+.file-upload-container.error {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+    border-style: solid;
+}
+
 .file-upload-container input[type="file"] {
     position: absolute;
     top: 0;
@@ -517,7 +523,7 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// Real-time AI image processing
+// Enhanced AI image processing with proper error handling
 async function processImageWithAI(imageFile) {
     const formData = new FormData();
     formData.append('image', imageFile);
@@ -533,14 +539,35 @@ async function processImageWithAI(imageFile) {
         });
         
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            // Handle HTTP errors
+            if (response.status === 429) {
+                throw new Error('Rate limit exceeded. Please try again later.');
+            } else if (response.status >= 500) {
+                throw new Error('Server error. Please try again.');
+            } else {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
         }
         
         const data = await response.json();
+        
+        // Check if the backend returned an error
+        if (!data.success) {
+            throw new Error(data.error || 'AI processing failed');
+        }
+        
         return data;
     } catch (error) {
         console.error('AI processing error:', error);
-        throw error;
+        
+        // Re-throw with appropriate message
+        if (error.message.includes('Failed to fetch')) {
+            throw new Error('Network error. Please check your connection.');
+        } else if (error.message.includes('rate limit')) {
+            throw new Error('AI service temporarily unavailable due to rate limits.');
+        } else {
+            throw error;
+        }
     }
 }
 
@@ -620,10 +647,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             try {
                 // Process with AI
-                const result = await processImageWithAI(file);
+                const response = await processImageWithAI(file);
                 
-                if (result.success) {
-                    const aiData = result.extracted_data;
+                // Check if AI processing was actually successful
+                if (response && response.success) {
+                    const aiData = response.extracted_data;
                     
                     // Update UI for success
                     container.classList.remove('processing');
@@ -652,10 +680,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         filledFields.push(`Product name: ${aiData.product_name}`);
                     }
                     
-                    // Expiry Date
+                    // Expiry Date - ALWAYS override if AI detects a valid date (FIXED)
                     if (aiData.expiry_date) {
                         const expiryField = document.querySelector('input[name="expiry_date"]');
-                        if (expiryField && !expiryField.value) {
+                        if (expiryField) {
                             expiryField.value = aiData.expiry_date;
                             filledFields.push(`Expiry date: ${aiData.expiry_date}`);
                         }
@@ -670,7 +698,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                     
-                    // Quantity
+                    // Quantity - only override default value (1.0)
                     if (aiData.quantity) {
                         const quantityField = document.querySelector('input[name="quantity"]');
                         if (quantityField && parseFloat(quantityField.value) === 1.0) {
@@ -754,33 +782,43 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                 } else {
-                    throw new Error(result.error || 'AI processing failed');
+                    // AI processing returned but wasn't successful
+                    throw new Error(response?.error || 'AI processing failed');
                 }
                 
             } catch (error) {
                 console.error('AI processing error:', error);
                 
-                // Fallback to regular file upload
+                // Reset to normal upload state with clear error indication
                 container.classList.remove('processing');
-                container.classList.add('success');
+                container.classList.remove('success');
+                container.classList.add('error');
                 
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     contentDiv.innerHTML = `
                         <div class="relative">
-                            <img src="${e.target.result}" class="w-20 h-20 object-cover rounded-lg mx-auto mb-2 border-2 border-gray-200">
+                            <img src="${e.target.result}" class="w-20 h-20 object-cover rounded-lg mx-auto mb-2 border-2 border-amber-200">
                             <p class="text-sm font-medium text-gray-700 truncate">${file.name}</p>
-                            <p class="text-xs text-gray-500 mt-1">Upload complete</p>
+                            <p class="text-xs text-amber-600 mt-1 font-medium">Uploaded (AI analysis failed)</p>
+                            <p class="text-xs text-gray-500 mt-1">Please fill details manually</p>
                         </div>
                     `;
                 };
                 reader.readAsDataURL(file);
                 
-                showAIToast('Image uploaded (AI analysis unavailable)', 'warning');
+                // Show appropriate error message based on error type
+                if (error.message.includes('rate limit') || error.message.includes('429')) {
+                    showAIToast('AI service temporarily unavailable. Please fill details manually.', 'warning');
+                } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                    showAIToast('Network error. Please check your connection and try again.', 'error');
+                } else {
+                    showAIToast('AI analysis failed. Please fill details manually.', 'warning');
+                }
             }
         } else {
             // Reset container if no file selected
-            container.classList.remove('processing', 'success');
+            container.classList.remove('processing', 'success', 'error');
             const contentDiv = container.querySelector('.file-upload-content');
             contentDiv.innerHTML = `
                 <i class="fas fa-camera text-gray-400 text-xl mb-2"></i>

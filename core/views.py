@@ -1156,12 +1156,23 @@ def process_pantry_image_api(request):
             })
             
         except Exception as e:
+            error_message = str(e)
+            print(f"AI image processing error: {error_message}")
+            
+            # Determine appropriate status code based on error type
+            if 'rate limit' in error_message.lower() or '429' in error_message:
+                status_code = 429
+            elif 'network' in error_message.lower() or 'connection' in error_message.lower():
+                status_code = 503
+            else:
+                status_code = 500
+                
             return JsonResponse({
                 'success': False,
-                'error': str(e)
-            })
+                'error': error_message
+            }, status=status_code)
     
     return JsonResponse({
         'success': False,
         'error': 'No image provided'
-    })
+    }, status=400)
