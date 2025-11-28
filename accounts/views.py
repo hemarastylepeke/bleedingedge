@@ -82,12 +82,22 @@ def profile_page_view(request):
     # Calculate average progress
     average_progress = total_progress / goals_with_progress_count if goals_with_progress_count > 0 else 0
 
+    # Prepare personal info fields for template
+    personal_info_fields = [
+        (profile.subscription_plan, 'Subscription Plan', ''),
+        (profile.height, 'Height', 'cm'),
+        (profile.weight, 'Weight', 'kg'),
+        (profile.age, 'Age', 'years'),
+        (profile.gender, 'Gender', ''),
+    ]
+
     context = {
         'profile': profile,
         'user_goals': user_goals,
         'active_goals_count': active_goals_count,
         'completed_goals_count': completed_goals_count,
         'average_progress': round(average_progress, 1),
+        'personal_info_fields': personal_info_fields,  # 
     }
     
     return render(request, 'account/profile.html', context)
