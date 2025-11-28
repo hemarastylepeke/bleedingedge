@@ -373,7 +373,7 @@ class FoodWasteRecord(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.user.username} - {self.pantry_item.name} waste"
+        return f"{self.user.email} - {self.pantry_item.name} waste"
 
 
 class Budget(models.Model):
