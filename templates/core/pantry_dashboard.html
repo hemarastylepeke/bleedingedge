@@ -128,12 +128,7 @@
                             <div class="flex-1">
                                 <h4 class="font-medium text-gray-800">{{ item.name }}</h4>
                                 <p class="text-gray-600 text-sm">
-                                    Expires in {{ item.days_until_expiry }} days • {{ item.quantity }} {{ item.unit }}
-                                    {% if item.days_until_expiry <= 1 %}
-                                        <span class="text-red-600 font-semibold">(Tomorrow)</span>
-                                    {% elif item.days_until_expiry <= 3 %}
-                                        <span class="text-amber-600 font-semibold">({{ item.days_until_expiry }} days)</span>
-                                    {% endif %}
+                                    Expired
                                 </p>
                             </div>
                             <div class="flex space-x-2">
