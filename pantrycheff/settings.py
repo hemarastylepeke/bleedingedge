@@ -13,9 +13,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-!r1txr5^6d_a$i7g3*3-40-m*^vp%9+b#$-j#2ls15ss@$bjgb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', 'bleedingedge-production.up.railway.app']
+ALLOWED_HOSTS = ['localhost', 'bleedingedge-production.up.railway.app', 'pantrychef.site', 'www.pantrychef.site']
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # SECURE_SSL_REDIRECT = True
 # SESSION_COOKIE_SECURE = True
@@ -234,4 +234,4 @@ ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_LOGOUT_ON_GET = True
 
 OPENAI_API_KEY= config('OPENAI_API_KEY').strip()
-CSRF_TRUSTED_ORIGINS = ['https://bleedingedge-production.up.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://bleedingedge-production.up.railway.app', 'https://pantrychef.site', 'https://www.pantrychef.site']
