@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'whitenoise.runserver_nostatic',
 
     # 'storages',
     'tailwind',
@@ -45,15 +46,24 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
 ]
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+    },
+}
 
 # Tailwind CSS configuration
 TAILWIND_APP_NAME = 'pantrycheff_tailwind'
@@ -83,13 +93,6 @@ WSGI_APPLICATION = 'pantrycheff.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 # Postgresql database for production
 DATABASES = {
     'default': {
@@ -102,31 +105,6 @@ DATABASES = {
     }
 }
 
-# # Redis cache configuration for production deployment
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": config("REDIS_URL"),
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#         },
-#     }
-# }
-
-# AWS credentials and configuration for the application
-# AWS_ACCESS_KEY_ID= config('AWS_ACCESS_KEY_ID')
-# AWS_REGION_ENDPOINT= config('AWS_REGION_ENDPOINT')
-# AWS_REGION_NAME= config('AWS_REGION_NAME')
-# AWS_S3_SIGNATURE_NAME= config('AWS_S3_SIGNATURE_NAME')
-# AWS_SECRET_ACCESS_KEY= config('AWS_SECRET_ACCESS_KEY')
-# AWS_STORAGE_BUCKET_NAME= config('AWS_STORAGE_BUCKET_NAME')
-# AWS_DEFAULT_ACL = None
-# AWS_S3_VERITY = config('AWS_S3_VERITY', default='True')
-# AWS_S3_FILE_OVERWRITE = config('AWS_S3_FILE_OVERWRITE', default='False')
-
-# For development, using console email backend
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
 # # Email configuration
 EMAIL_BACKEND = config('EMAIL_BACKEND')
 EMAIL_HOST = config('EMAIL_HOST')
@@ -136,17 +114,6 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
-# STORAGES = {
-#     # Media files storage configuration
-#     # 'default': {
-#     #     'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
-#     # },
-    
-#     # CSS and JS file management
-#     'staticfiles': {
-#         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
-#     },
-# }
 
 # Trusted origins
 CSRF_TRUSTED_ORIGINS = []
@@ -185,13 +152,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles', 'static')
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
