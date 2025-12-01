@@ -993,7 +993,7 @@ def create_recipe_view(request):
     if request.method == 'POST':
         try:
             # Call the AI service to generate multiple recipes
-            recipes = generate_multiple_ai_recipes(request.user, num_recipes=4)
+            recipes = generate_multiple_ai_recipes(request.user, num_recipes=3)
             
             if recipes:
                 # Store the IDs of newly generated recipes in session

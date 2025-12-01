@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-!r1txr5^6d_a$i7g3*3-40-m*^vp%9+b#$-j#2ls15ss@$bjgb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', 'bleedingedge-production.up.railway.app', 'pantrychef.site', 'www.pantrychef.site']
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
