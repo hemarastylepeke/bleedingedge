@@ -6,7 +6,7 @@ from django.utils import timezone
 from datetime import timedelta
 import json
 from .models import UserPantry, Recipe, Budget, ShoppingList, ShoppingListItem, FoodWasteRecord
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from .forms import PantryItemForm, BudgetForm, ShoppingListForm, ShoppingListItemForm, RecipeForm
 from django.db.models import Q
 from django.forms import formset_factory
@@ -16,6 +16,7 @@ from core.services.ai_image_processing import process_pantry_item_images
 from decimal import Decimal
 from django.db import transaction
 import decimal
+
 
 def home_page_view(request):
     # If user is already authenticated, redirect to dashboard
@@ -1107,31 +1108,68 @@ def my_recipes_view(request):
 @login_required(login_url='account_login')
 def food_waste_analytics_view(request):
     """
-    Display user's food waste analytics after shopping list confirmation.
+    Display user's food waste analytics
+    Automatically checks for expired items on every request
     """
     user = request.user
-    waste_records = FoodWasteRecord.objects.filter(user=user)
-
-    total_wasted_cost = waste_records.aggregate(Sum('cost'))['cost__sum'] or 0
-    total_wasted_qty = waste_records.aggregate(Sum('quantity_wasted'))['quantity_wasted__sum'] or 0
-
-    # Format to 2 decimal places
-    if total_wasted_cost:
-        total_wasted_cost = round(float(total_wasted_cost), 2)
-
-    by_reason = (
-        waste_records.values('reason')
-        .annotate(total=Sum('quantity_wasted'))
-        .order_by('-total')
+    
+    # Check expired items on each and every request
+    # Get all active items that have expired
+    expired_items = UserPantry.objects.filter(
+        user=user,
+        status='active',
+        expiry_date__lt=timezone.now().date()  # Items that expired before today
     )
-
+    
+    expired_count = 0
+    for item in expired_items:
+        # This will mark as expired and create waste record
+        if item.check_and_mark_expired():
+            expired_count += 1
+    
+    # Show message if we found expired items
+    if expired_count > 0:
+        messages.info(
+            request, 
+            f"Found {expired_count} expired item(s) and added them to waste records."
+        )
+    
+    # Get waste records including for newly added ones
+    waste_records = FoodWasteRecord.objects.filter(user=user)
+    
+    # Calculate total wate statistics
+    total_wasted_cost = waste_records.aggregate(Sum('cost'))['cost__sum'] or Decimal('0.00')
+    total_wasted_qty = waste_records.aggregate(Sum('quantity_wasted'))['quantity_wasted__sum'] or 0
+    
+    # Get waste breakdown by reason
+    waste_by_reason = (
+        waste_records.values('reason')
+        .annotate(
+            total_cost=Sum('cost'),
+            total_quantity=Sum('quantity_wasted'),
+            count=Count('id')
+        )
+        .order_by('-total_cost')
+    )
+    
+    # Get items that will expire soon 
+    expiring_soon = UserPantry.objects.filter(
+        user=user,
+        status='active',
+        expiry_date__gte=timezone.now().date(),
+        expiry_date__lte=timezone.now().date() + timezone.timedelta(days=3)
+    ).order_by('expiry_date')
+    
     context = {
         "total_wasted_cost": total_wasted_cost,
         "total_wasted_qty": total_wasted_qty,
-        "waste_by_reason": by_reason,
-        "waste_records": waste_records,
+        "waste_records": waste_records.order_by('-waste_date'),
+        "waste_by_reason": waste_by_reason,
+        "expiring_soon": expiring_soon,
+        "expired_count": expired_count,
+        "today": timezone.now().date(),
     }
-
+    
     return render(request, "core/food_waste_analytics.html", context)
 
 @login_required(login_url='account_login')

@@ -97,36 +97,54 @@ class UserPantry(models.Model):
         return f"{self.user.email} - {self.name} ({self.quantity}{self.unit})"
     
     def save(self, *args, **kwargs):
-        """Override save to check expiration before saving"""
+        """Override save to check expiration before saving - PREVENTS REDUNDANCY"""
+        # If already expired, just save normally
+        if self.status == 'expired':
+            super().save(*args, **kwargs)
+            return
+            
         # Check if item is active and has expired
         if self.status == 'active' and self.expiry_date < timezone.now().date():
-            # Mark as expired but don't call save() yet to avoid recursion
+            # Mark as expired
             self.status = 'expired'
             self.quantity = 0
-            super().save(*args, **kwargs)  # Save with expired status
-            # Now create the waste record
-            self._create_expired_waste_record()
+            
+            # Save with expired status
+            super().save(*args, **kwargs)
+            
+            # Check if waste record already exists before creating new one
+            self._create_expired_waste_record_if_needed()
         else:
             super().save(*args, **kwargs)
     
-    def _create_expired_waste_record(self):
-        """Create waste record for expired item"""
+    def _create_expired_waste_record_if_needed(self):
+        """Create waste record for expired item ONLY if it doesn't exist"""
         # Import here to avoid circular import
         from .models import FoodWasteRecord
         
-        FoodWasteRecord.objects.create(
-            user=self.user,
+        # Check if waste record already exists for this item TODAY
+        today = timezone.now().date()
+        existing_record = FoodWasteRecord.objects.filter(
             pantry_item=self,
-            original_quantity=self.quantity,
-            quantity_wasted=self.quantity,
-            unit=self.unit,
-            cost=self.price or Decimal('0.00'),
             reason='expired',
-            reason_details=f"Item expired on {self.expiry_date}",
-            purchase_date=self.purchase_date,
-            expiry_date=self.expiry_date,
-            waste_date=timezone.now().date()
-        )
+            waste_date=today
+        ).exists()
+        
+        # Only create if it doesn't exist
+        if not existing_record:
+            FoodWasteRecord.objects.create(
+                user=self.user,
+                pantry_item=self,
+                original_quantity=self.quantity,
+                quantity_wasted=self.quantity,
+                unit=self.unit,
+                cost=self.price or Decimal('0.00'),
+                reason='expired',
+                reason_details=f"Item expired on {self.expiry_date}",
+                purchase_date=self.purchase_date,
+                expiry_date=self.expiry_date,
+                waste_date=today
+            )
     
     def get_nutritional_info(self):
         """Get formatted nutritional information"""
@@ -200,25 +218,25 @@ class UserPantry(models.Model):
     def mark_as_expired(self):
         """
         Mark item as expired and create waste record.
-        This can be called manually if needed.
         """
-        if self.status != 'active':
-            return False  # Already not active
+        # If already expired, do nothing
+        if self.status == 'expired':
+            return False
             
-        self.status = 'expired'
-        self.quantity = 0
-        self.save()  # Trigger the save() method to create waste record
-        return True
+        # Only mark active items as expired
+        if self.status == 'active' and self.expiry_date < timezone.now().date():
+            self.status = 'expired'
+            self.quantity = 0
+            self.save()  # This will trigger the save() method
+            return True
+        
+        return False
     
     def check_and_mark_expired(self):
         """
         Check if item is expired and mark it if it is.
-        Returns True if item was expired, False otherwise.
         """
-        if self.status == 'active' and self.expiry_date < timezone.now().date():
-            return self.mark_as_expired()
-        return False
-
+        return self.mark_as_expired()
 
 class Recipe(models.Model):
     DIFFICULTY_LEVELS = [
