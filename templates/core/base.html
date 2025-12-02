@@ -9,21 +9,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}PantryChef - Reduce Food Waste{% endblock %}</title>
 
-    <meta name="description" content="Smart pantry management...">
-    <meta name="keywords" content="pantry management...">
-    <meta name="author" content="PantryCheff">
-
-    <meta property="og:title" content="PantryCheff - Smart Food Management">
-    <meta property="og:description" content="Smart pantry management and food waste reduction.">
+    <!-- Meta Descriptions -->
+    <meta name="description" content="PantryChef is a smart food management platform that helps households reduce food waste, save money, and eat healthier. Track pantry items, get AI-powered recipe suggestions, create smart shopping lists, and manage your food budget efficiently.">
+    
+    <!-- Keywords -->
+    <meta name="keywords" content="food waste reduction, pantry management, smart grocery shopping, meal planning, budget tracking, recipe suggestions, AI food assistant, kitchen inventory, sustainable cooking, food saving, grocery list, meal prep, kitchen organization, food expiry tracker, smart cooking">
+    
+    <!-- Author and Copyright -->
+    <meta name="author" content="VoltageItLabs">
+    <meta name="copyright" content="PantryChef">
+    
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:title" content="PantryChef - Smart Food Management & Waste Reduction">
+    <meta property="og:description" content="Reduce food waste, save money, and eat smarter with PantryChef's AI-powered pantry management and meal planning platform.">
     <meta property="og:type" content="website">
-
+    <meta property="og:url" content="https://pantrychef.site">
+    <meta property="og:image" content="{% static 'images/og-image.png' %}">
+    <meta property="og:site_name" content="PantryChef">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PantryChef - Smart Food Management">
+    <meta name="twitter:description" content="AI-powered platform to reduce food waste and manage your pantry efficiently.">
+    <meta name="twitter:image" content="{% static 'images/twitter-card.png' %}">
+    
+    <!-- Additional Meta Tags for Better SEO -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="theme-color" content="#10B981">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- Canonical URL -->
     <link rel="canonical" href="https://pantrychef.site">
-    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css"/>
-
+    
+    <!-- Favicon and App Icons -->
     <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    
+    <!-- Font Awesome -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-
-    <!-- Fade-out animation styles -->
+    
+    <!-- AOS Animation Library -->
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css"/>
+    
+    <!-- Custom styles for better mobile menu -->
     <style>
         .fade-out {
             opacity: 1;
@@ -32,14 +65,58 @@
         .fade-out.hidden {
             opacity: 0;
         }
+        
+        /* Prevent body scrolling when mobile menu is open */
+        body.menu-open {
+            overflow: hidden;
+        }
+        
+        /* Smooth transitions */
+        .mobile-menu-transition {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .overlay-transition {
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        /* Performance optimizations */
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* Fix for dropdown hover */
+        .group:hover .group-hover\:opacity-100 {
+            opacity: 1 !important;
+        }
+        .group:hover .group-hover\:visible {
+            visibility: visible !important;
+        }
+        .group:hover .group-hover\:translate-y-0 {
+            transform: translateY(0) !important;
+        }
+        .group:hover .group-hover\:rotate-180 {
+            transform: rotate(180deg) !important;
+        }
+        .group:hover .group-hover\:text-green-600 {
+            color: #10B981 !important;
+        }
     </style>
+    
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://unpkg.com">
+    
+    {% block extra_head %}{% endblock %}
 </head>
 
 <body class="bg-gray-50 min-h-screen flex flex-col">
 
 <!-- Navbar -->
-<nav class="bg-white font-barlow border-b border-slate-200 sticky top-0 z-50 transition-theme">
-    <div class="flex justify-between items-center mx-auto w-full max-w-7xl py-4 px-6">
+<nav class="bg-white font-barlow border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <div class="flex justify-between items-center mx-auto w-full max-w-7xl py-4 px-4 sm:px-6">
 
         <!-- Logo -->
         <a href="{% url 'pantry_dashboard' %}" class="flex items-center flex-shrink-0">
@@ -50,55 +127,60 @@
 
         <!-- Mobile hamburger button -->
         <button onclick="toggleMobileMenu()" type="button"
-                class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-slate-500 rounded-lg md:hidden hover:bg-slate-100">
+                class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-slate-700 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500">
             <span class="sr-only">Open main menu</span>
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 17 14">
+            <svg id="menu-open-icon" class="w-5 h-5" fill="none" viewBox="0 0 17 14">
                 <path stroke="currentColor" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round"
                       d="M1 1h15M1 7h15M1 13h15"/>
+            </svg>
+            <svg id="menu-close-icon" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round"
+                      d="M6 18L18 6M6 6l12 12"/>
             </svg>
         </button>
 
         <!-- Desktop menu -->
         <div id="mega-menu-full" class="hidden md:flex items-center justify-end flex-1">
-            <ul class="flex items-center space-x-8">
+            <ul class="flex items-center space-x-6 lg:space-x-8">
 
                 <li>
                     <a href="{% url 'pantry_dashboard' %}"
-                       class="flex items-center py-2 text-slate-900 hover:text-green-600
-                       {% if request.resolver_match.url_name == 'pantry_dashboard' %}text-green-600 font-semibold{% endif %}">
+                       class="flex items-center py-2 text-slate-700 hover:text-green-600 transition-colors duration-200
+                       {% if request.resolver_match.url_name == 'pantry_dashboard' %}text-green-600 font-semibold border-b-2 border-green-600{% endif %}">
                         <i class="fas fa-home mr-2 text-sm"></i> Dashboard
                     </a>
                 </li>
 
                 <li>
                     <a href="{% url 'recipe_list' %}"
-                       class="flex items-center py-2 text-slate-900 hover:text-green-600
-                       {% if 'recipe' in request.resolver_match.url_name %}text-green-600 font-semibold{% endif %}">
+                       class="flex items-center py-2 text-slate-700 hover:text-green-600 transition-colors duration-200
+                       {% if 'recipe' in request.resolver_match.url_name %}text-green-600 font-semibold border-b-2 border-green-600{% endif %}">
                         <i class="fas fa-utensils mr-2 text-sm"></i> Recipes
                     </a>
                 </li>
 
-                <!-- Pantry dropdown -->
-                <li class="relative">
-                    <button onclick="toggleDropdown()"
-                            class="flex items-center py-2 text-slate-900 hover:text-green-600">
+                
+                <li class="relative group">
+                    <button onclick="toggleDesktopDropdown()"
+                            class="flex items-center py-2 text-slate-700 hover:text-green-600 transition-colors duration-200 group-hover:text-green-600 focus:outline-none">
                         <i class="fas fa-shopping-basket mr-2 text-sm"></i> Pantry
-                        <svg class="w-2.5 h-2.5 ml-2" fill="none" viewBox="0 0 10 6">
+                        <svg class="w-2.5 h-2.5 ml-2 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 10 6">
                             <path stroke="currentColor" stroke-width="2"
                                   stroke-linecap="round" stroke-linejoin="round"
                                   d="m1 1 4 4 4-4"/>
                         </svg>
                     </button>
 
-                    <div id="mega-menu-full-dropdown"
-                         class="hidden absolute left-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
+                    <div id="desktop-pantry-dropdown"
+                         class="absolute left-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform group-hover:translate-y-0 -translate-y-2">
                         <a href="{% url 'pantry_list' %}"
-                           class="flex items-center px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-green-600">
+                           class="flex items-center px-4 py-2 text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors duration-150">
                             <i class="fas fa-clipboard-list mr-2 text-sm"></i> My Pantry
                         </a>
                         <a href="{% url 'add_pantry_item' %}"
-                           class="flex items-center px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-green-600">
+                           class="flex items-center px-4 py-2 text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors duration-150">
                             <i class="fas fa-plus-circle mr-2 text-sm"></i> Add Item
                         </a>
                     </div>
@@ -106,24 +188,24 @@
 
                 <li>
                     <a href="{% url 'shopping_list_list' %}"
-                       class="flex items-center py-2 text-slate-900 hover:text-green-600
-                       {% if 'shopping' in request.resolver_match.url_name %}text-green-600 font-semibold{% endif %}">
+                       class="flex items-center py-2 text-slate-700 hover:text-green-600 transition-colors duration-200
+                       {% if 'shopping' in request.resolver_match.url_name %}text-green-600 font-semibold border-b-2 border-green-600{% endif %}">
                         <i class="fas fa-list-alt mr-2 text-sm"></i> Shopping Lists
                     </a>
                 </li>
 
                 <li>
                     <a href="{% url 'budget_list' %}"
-                       class="flex items-center py-2 text-slate-900 hover:text-green-600
-                       {% if 'budget' in request.resolver_match.url_name %}text-green-600 font-semibold{% endif %}">
+                       class="flex items-center py-2 text-slate-700 hover:text-green-600 transition-colors duration-200
+                       {% if 'budget' in request.resolver_match.url_name %}text-green-600 font-semibold border-b-2 border-green-600{% endif %}">
                         <i class="fas fa-wallet mr-2 text-sm"></i> Budget
                     </a>
                 </li>
 
                 <li>
                     <a href="{% url 'food_waste_analytics' %}"
-                       class="flex items-center py-2 text-slate-900 hover:text-green-600
-                       {% if 'waste' in request.resolver_match.url_name %}text-green-600 font-semibold{% endif %}">
+                       class="flex items-center py-2 text-slate-700 hover:text-green-600 transition-colors duration-200
+                       {% if 'waste' in request.resolver_match.url_name %}text-green-600 font-semibold border-b-2 border-green-600{% endif %}">
                         <i class="fas fa-chart-pie mr-2 text-sm"></i> Waste Analytics
                     </a>
                 </li>
@@ -131,22 +213,22 @@
                 {% if request.user.is_authenticated %}
                     <li>
                         <a href="{% url 'profile_page' %}"
-                           class="flex items-center py-2 text-slate-900 hover:text-green-600
-                           {% if 'profile' in request.resolver_match.url_name %}text-green-600 font-semibold{% endif %}">
+                           class="flex items-center py-2 text-slate-700 hover:text-green-600 transition-colors duration-200
+                           {% if 'profile' in request.resolver_match.url_name %}text-green-600 font-semibold border-b-2 border-green-600{% endif %}">
                             <i class="fas fa-user mr-2 text-sm"></i> Profile
                         </a>
                     </li>
                     <li>
                         <a href="{% url 'account_logout' %}"
-                           class="flex items-center py-2 text-slate-900 hover:text-red-600 ml-4">
+                           class="flex items-center py-2 text-slate-700 hover:text-red-600 transition-colors duration-200 ml-4">
                             <i class="fas fa-sign-out-alt mr-2 text-sm"></i> Logout
                         </a>
                     </li>
                 {% else %}
                     <li>
                         <a href="{% url 'account_login' %}"
-                           class="flex items-center justify-center bg-green-600 hover:bg-green-700
-                           border border-green-700 rounded-md px-5 py-2.5 text-white font-medium ml-4">
+                           class="flex items-center justify-center bg-green-600 hover:bg-green-700 transition-colors duration-200
+                           border border-green-700 rounded-md px-5 py-2.5 text-white font-medium ml-4 shadow-sm hover:shadow">
                             <i class="fas fa-sign-in-alt mr-2"></i> Login
                         </a>
                     </li>
@@ -156,33 +238,84 @@
     </div>
 </nav>
 
-<!-- Mobile Menu -->
-<div id="mobile-menu" class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform duration-300 z-50 md:hidden hidden">
-    <div class="flex justify-between items-center p-4 border-b border-gray-200">
-        <span class="text-xl font-bold text-green-600">Menu</span>
-        <button onclick="toggleMobileMenu()" class="text-gray-500 hover:text-green-600">
-            <i class="fas fa-times"></i>
+<!-- Mobile Menu - Professional slide-in -->
+<div id="mobile-menu" class="fixed top-0 left-0 w-64 h-full bg-white shadow-2xl mobile-menu-transition transform -translate-x-full z-50 md:hidden">
+    <div class="flex justify-between items-center p-6 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white">
+        <span class="text-2xl font-bold text-green-600">
+            Pantry<span class="text-amber-500">Chef</span>
+        </span>
+        <button onclick="toggleMobileMenu()" class="text-gray-500 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200">
+            <i class="fas fa-times text-xl"></i>
         </button>
     </div>
-    <ul class="flex flex-col mt-4 space-y-2 px-4">
-        <li><a href="{% url 'pantry_dashboard' %}" class="flex items-center py-2 text-gray-900 hover:text-green-600"><i class="fas fa-home mr-2"></i> Dashboard</a></li>
-        <li><a href="{% url 'recipe_list' %}" class="flex items-center py-2 text-gray-900 hover:text-green-600"><i class="fas fa-utensils mr-2"></i> Recipes</a></li>
-        <li><a href="{% url 'pantry_list' %}" class="flex items-center py-2 text-gray-900 hover:text-green-600"><i class="fas fa-shopping-basket mr-2"></i> My Pantry</a></li>
-        <li><a href="{% url 'add_pantry_item' %}" class="flex items-center py-2 text-gray-900 hover:text-green-600"><i class="fas fa-plus-circle mr-2"></i> Add Item</a></li>
-        <li><a href="{% url 'shopping_list_list' %}" class="flex items-center py-2 text-gray-900 hover:text-green-600"><i class="fas fa-list-alt mr-2"></i> Shopping Lists</a></li>
-        <li><a href="{% url 'budget_list' %}" class="flex items-center py-2 text-gray-900 hover:text-green-600"><i class="fas fa-wallet mr-2"></i> Budget</a></li>
-        <li><a href="{% url 'food_waste_analytics' %}" class="flex items-center py-2 text-gray-900 hover:text-green-600"><i class="fas fa-chart-pie mr-2"></i> Waste Analytics</a></li>
-        {% if request.user.is_authenticated %}
-            <li><a href="{% url 'profile_page' %}" class="flex items-center py-2 text-gray-900 hover:text-green-600"><i class="fas fa-user mr-2"></i> Profile</a></li>
-            <li><a href="{% url 'account_logout' %}" class="flex items-center py-2 text-gray-900 hover:text-red-600"><i class="fas fa-sign-out-alt mr-2"></i> Logout</a></li>
-        {% else %}
-            <li><a href="{% url 'account_login' %}" class="flex items-center py-2 text-white bg-green-600 hover:bg-green-700 rounded-md px-4"><i class="fas fa-sign-in-alt mr-2"></i> Login</a></li>
-        {% endif %}
-    </ul>
+    <div class="overflow-y-auto h-[calc(100%-80px)]">
+        <ul class="flex flex-col py-4 px-2 space-y-1">
+            <li>
+                <a href="{% url 'pantry_dashboard' %}" 
+                   class="flex items-center px-4 py-3 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 {% if request.resolver_match.url_name == 'pantry_dashboard' %}text-green-600 bg-green-50 font-semibold{% endif %}">
+                    <i class="fas fa-home mr-3 text-green-500"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'recipe_list' %}" 
+                   class="flex items-center px-4 py-3 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 {% if 'recipe' in request.resolver_match.url_name %}text-green-600 bg-green-50 font-semibold{% endif %}">
+                    <i class="fas fa-utensils mr-3 text-green-500"></i> Recipes
+                </a>
+            </li>
+            <li class="border-t border-gray-100 mt-2 pt-2">
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 py-2">Pantry</span>
+                <a href="{% url 'pantry_list' %}" 
+                   class="flex items-center px-4 py-3 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 ml-2 {% if 'pantry_list' in request.resolver_match.url_name %}text-green-600 bg-green-50 font-semibold{% endif %}">
+                    <i class="fas fa-clipboard-list mr-3 text-green-500"></i> My Pantry
+                </a>
+                <a href="{% url 'add_pantry_item' %}" 
+                   class="flex items-center px-4 py-3 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 ml-2 {% if 'add_pantry_item' in request.resolver_match.url_name %}text-green-600 bg-green-50 font-semibold{% endif %}">
+                    <i class="fas fa-plus-circle mr-3 text-green-500"></i> Add Item
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'shopping_list_list' %}" 
+                   class="flex items-center px-4 py-3 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 {% if 'shopping' in request.resolver_match.url_name %}text-green-600 bg-green-50 font-semibold{% endif %}">
+                    <i class="fas fa-list-alt mr-3 text-green-500"></i> Shopping Lists
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'budget_list' %}" 
+                   class="flex items-center px-4 py-3 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 {% if 'budget' in request.resolver_match.url_name %}text-green-600 bg-green-50 font-semibold{% endif %}">
+                    <i class="fas fa-wallet mr-3 text-green-500"></i> Budget
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'food_waste_analytics' %}" 
+                   class="flex items-center px-4 py-3 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 {% if 'waste' in request.resolver_match.url_name %}text-green-600 bg-green-50 font-semibold{% endif %}">
+                    <i class="fas fa-chart-pie mr-3 text-green-500"></i> Waste Analytics
+                </a>
+            </li>
+            {% if request.user.is_authenticated %}
+                <li class="border-t border-gray-100 mt-2 pt-2">
+                    <a href="{% url 'profile_page' %}" 
+                       class="flex items-center px-4 py-3 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 {% if 'profile' in request.resolver_match.url_name %}text-green-600 bg-green-50 font-semibold{% endif %}">
+                        <i class="fas fa-user mr-3 text-green-500"></i> Profile
+                    </a>
+                    <a href="{% url 'account_logout' %}" 
+                       class="flex items-center px-4 py-3 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-sign-out-alt mr-3 text-red-500"></i> Logout
+                    </a>
+                </li>
+            {% else %}
+                <li class="border-t border-gray-100 mt-2 pt-2 px-4">
+                    <a href="{% url 'account_login' %}" 
+                       class="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 shadow-sm hover:shadow">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Login
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
 </div>
 
-<!-- Overlay -->
-<div id="mobile-menu-overlay" class="fixed inset-0 bg-black bg-opacity-25 hidden z-40 md:hidden" onclick="toggleMobileMenu()"></div>
+<!-- Overlay - Professional with subtle animation -->
+<div id="mobile-menu-overlay" class="fixed inset-0 bg-white overlay-transition opacity-0 pointer-events-none z-40 md:hidden" onclick="toggleMobileMenu()"></div>
 
 <!-- Main Content -->
 <main class="flex-grow">
@@ -230,20 +363,68 @@
         if (typeof AOS !== 'undefined') {
             AOS.init({ duration: 800, once: true, offset: 100 });
         }
+        
+        // Close desktop dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('desktop-pantry-dropdown');
+            const button = event.target.closest('button[onclick*="toggleDesktopDropdown"]');
+            
+            if (dropdown && !dropdown.contains(event.target) && !button) {
+                
+                // dropdown.classList.add('hidden');
+            }
+        });
     });
 
-    // Toggle desktop dropdown
-    function toggleDropdown() {
-        document.getElementById('mega-menu-full-dropdown').classList.toggle('hidden');
+    // Toggle desktop dropdown - JavaScript fallback for click
+    function toggleDesktopDropdown() {
+        
+        const dropdown = document.getElementById('desktop-pantry-dropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('hidden');
+            dropdown.classList.toggle('opacity-100');
+            dropdown.classList.toggle('visible');
+            dropdown.classList.toggle('-translate-y-2');
+            dropdown.classList.toggle('translate-y-0');
+        }
     }
 
-    // Toggle mobile menu
+    // Toggle mobile menu - Professional version
     function toggleMobileMenu() {
         const menu = document.getElementById('mobile-menu');
         const overlay = document.getElementById('mobile-menu-overlay');
-        menu.classList.toggle('hidden');
-        overlay.classList.toggle('hidden');
+        const menuOpenIcon = document.getElementById('menu-open-icon');
+        const menuCloseIcon = document.getElementById('menu-close-icon');
+        const body = document.body;
+        
+        if (menu.classList.contains('-translate-x-full')) {
+            // Open menu
+            menu.classList.remove('-translate-x-full');
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+            overlay.classList.add('opacity-50', 'pointer-events-auto');
+            menuOpenIcon.classList.add('hidden');
+            menuCloseIcon.classList.remove('hidden');
+            body.classList.add('menu-open');
+        } else {
+            // Close menu
+            menu.classList.add('-translate-x-full');
+            overlay.classList.remove('opacity-50', 'pointer-events-auto');
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+            menuOpenIcon.classList.remove('hidden');
+            menuCloseIcon.classList.add('hidden');
+            body.classList.remove('menu-open');
+        }
     }
+
+    // Close menu when clicking escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const menu = document.getElementById('mobile-menu');
+            if (!menu.classList.contains('-translate-x-full')) {
+                toggleMobileMenu();
+            }
+        }
+    });
 </script>
 
 <script src="https://unpkg.com/aos@next/dist/aos.js"></script>

@@ -1105,6 +1105,7 @@ def my_recipes_view(request):
     }
     return render(request, 'core/my_recipes.html', context)
 
+
 @login_required(login_url='account_login')
 def food_waste_analytics_view(request):
     """
