@@ -15,7 +15,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Total Cost Wasted</p>
-                        <p class="text-2xl font-bold text-gray-800 mt-2">£{{ total_wasted_cost }}</p>
+                        <p class="text-2xl font-bold text-gray-800 mt-2">£{{ total_wasted_cost|floatformat:2 }}</p>
                     </div>
                     <div class="bg-red-100 p-3 rounded-full">
                         <i class="fas fa-money-bill-wave text-red-600 text-xl"></i>
@@ -28,7 +28,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Total Quantity Wasted</p>
-                        <p class="text-2xl font-bold text-gray-800 mt-2">{{ total_wasted_qty }} units</p>
+                        <p class="text-2xl font-bold text-gray-800 mt-2">{{ total_wasted_qty|floatformat:2 }} units</p>
                     </div>
                     <div class="bg-orange-100 p-3 rounded-full">
                         <i class="fas fa-weight text-orange-600 text-xl"></i>
@@ -61,7 +61,7 @@
                 <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <div class="flex justify-between items-start mb-2">
                         <span class="text-sm font-medium text-gray-700 capitalize">{{ entry.reason }}</span>
-                        <span class="text-lg font-bold text-green-600">{{ entry.total }}</span>
+                        <span class="text-lg font-bold text-green-600">{{ entry.total|floatformat:2 }}</span>
                     </div>
                     <p class="text-xs text-gray-500">units wasted</p>
                 </div>
@@ -116,10 +116,10 @@
                                 </span>
                             </td>
                             <td class="py-3 px-4 text-sm text-gray-700">
-                                {{ record.quantity_wasted }} {{ record.unit }}
+                                {{ record.quantity_wasted|floatformat:2 }} {{ record.unit }}
                             </td>
                             <td class="py-3 px-4">
-                                <span class="font-semibold text-red-600">£{{ record.cost }}</span>
+                                <span class="font-semibold text-red-600">£{{ record.cost|floatformat:2 }}</span>
                             </td>
                             <td class="py-3 px-4 text-sm text-gray-500">
                                 {{ record.waste_date }}
