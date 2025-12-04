@@ -472,7 +472,7 @@ class Budget(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.user.username} - {self.amount} {self.currency}/{self.period}"
+        return f"{self.user.email} - {self.amount} {self.currency}/{self.period}"
 
     def get_spending_percentage(self):
         if self.amount > 0:
