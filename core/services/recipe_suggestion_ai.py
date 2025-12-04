@@ -182,6 +182,7 @@ def generate_multiple_ai_recipes(user, num_recipes=3):
                 {"role": "user", "content": prompt},
             ],
             temperature=0.7,  # Higher temperature for more variety
+            timeout=60.0,  # Explicit 60-second timeout for recipe generation
         )
 
         ai_text = response.choices[0].message.content.strip()

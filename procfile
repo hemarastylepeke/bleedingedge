@@ -1,2 +1,2 @@
 release: python manage.py makemigrations && python manage.py migrate
-web: gunicorn backend.wsgi --timeout 120 --log-file -
+web: gunicorn backend.wsgi --timeout 300 --graceful-timeout 300 --workers 2 --threads 4 --log-file -

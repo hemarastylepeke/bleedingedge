@@ -201,6 +201,7 @@ def generate_ai_shopping_list(user, model="gpt-4o-mini", temperature=0.5):
             model=model,
             messages=[{"role": "user", "content": prompt}],
             temperature=temperature,
+            timeout=60.0,  # Explicit 60-second timeout for text generation
         )
 
         ai_text = response.choices[0].message.content.strip()

@@ -68,6 +68,7 @@ def extract_text_from_image(image_file):
                 }
             ],
             max_tokens=1500,
+            timeout=90.0,  # Explicit 90-second timeout for vision API
         )
         
         extracted_text = response.choices[0].message.content.strip()
