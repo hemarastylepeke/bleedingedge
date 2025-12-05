@@ -98,7 +98,6 @@ class UserPantry(models.Model):
     
     def save(self, *args, **kwargs):
         """Override save to prevent automatic expiration handling"""
-        # Just save normally - expiration is handled by signals
         super().save(*args, **kwargs)
     
     def get_nutritional_info(self):
@@ -126,10 +125,14 @@ class UserPantry(models.Model):
     
     def is_expiring_soon(self, days=3):
         """Check if item is expiring within the specified days"""
+        if self.status != 'active':
+            return False  # Only active items can be expiring soon
         return self.expiry_date <= timezone.now().date() + timezone.timedelta(days=days)
     
     def days_until_expiry(self):
         """Calculate days until expiry"""
+        if self.status != 'active':
+            return None  # Not applicable for non-active items
         return (self.expiry_date - timezone.now().date()).days
     
     def mark_as_consumed(self, consumed_quantity=None):
@@ -139,9 +142,11 @@ class UserPantry(models.Model):
             
         if consumed_quantity >= self.quantity:
             self.status = 'consumed'
-            self.quantity = 0
+            # Keep the original quantity for historical record
         else:
+            # Partial consumption - reduce quantity, keep as active
             self.quantity -= consumed_quantity
+            # Status remains 'active' for partial consumption
             
         self.save()
     
@@ -150,7 +155,7 @@ class UserPantry(models.Model):
         if wasted_quantity is None:
             wasted_quantity = self.quantity
             
-        # Create waste record
+        # Create waste record with current quantity
         FoodWasteRecord.objects.create(
             user=self.user,
             pantry_item=self,
@@ -164,16 +169,18 @@ class UserPantry(models.Model):
         
         if wasted_quantity >= self.quantity:
             self.status = 'wasted'
-            self.quantity = 0
+            # Keep the original quantity for historical record
         else:
+            # Partial wastage - reduce quantity, keep as active
             self.quantity -= wasted_quantity
+            # Status remains 'active' for partial wastage
             
         self.save()
     
     def mark_as_expired(self):
         """
         Mark item as expired.
-        NOTE: This only marks as expired - waste record creation is handled by signal
+        Keep the original quantity for historical accuracy.
         """
         # If already expired, do nothing
         if self.status == 'expired':
@@ -182,8 +189,7 @@ class UserPantry(models.Model):
         # Only mark active items as expired
         if self.status == 'active' and self.expiry_date < timezone.now().date():
             self.status = 'expired'
-            self.quantity = 0
-            self.save()  # This will trigger the save() method
+            self.save()
             return True
         
         return False

@@ -7,4 +7,6 @@ class CoreConfig(AppConfig):
 
     def ready(self):
         # Import and connect signals
-        import core.signals
+        # import core.signals
+
+        pass
