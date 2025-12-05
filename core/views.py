@@ -13,6 +13,7 @@ from django.forms import formset_factory
 from core.services.recipe_suggestion_ai import generate_ai_recipe_from_openai, generate_multiple_ai_recipes
 from core.services.ai_shopping_service import generate_ai_shopping_list, confirm_shopping_list, detect_and_record_food_waste
 from core.services.ai_image_processing import process_pantry_item_images
+from core.signals import detect_and_process_all_expired_items, get_expiring_soon_items
 from decimal import Decimal
 from django.db import transaction
 import decimal
@@ -1114,40 +1115,31 @@ def food_waste_analytics_view(request):
     user = request.user
     today = timezone.now().date()
 
-    # Get IDs of items that need to be expired
-    expired_item_ids = UserPantry.objects.filter(
-        user=user,
-        status='active',
-        expiry_date__lt=today
-    ).values_list('id', flat=True)
+    # DETECT EXPIRED ITEMS USING SIGNAL FUNCTION# This is the key change - call the signal function
+    expired_count = detect_and_process_all_expired_items(user)
     
-    expired_count = 0
-    if expired_item_ids:
-        # Process each expired item
-        for item_id in expired_item_ids:
-            try:
-                item = UserPantry.objects.get(id=item_id, user=user)
-                # mark_as_expired() is idempotent and checks for duplicates
-                if item.mark_as_expired():
-                    expired_count += 1
-            except UserPantry.DoesNotExist:
-                pass  # Item was deleted or doesn't exist
-        
-        # Only show message if we actually processed items
-        if expired_count > 0:
-            messages.info(
-                request, 
-                f"Found and processed {expired_count} expired item(s)."
-            )
     
-    # Get all waste records including newly created ones
+    
+    # PHASE 3: Show feedback to user
+    if expired_count > 0:
+        messages.success(
+            request, 
+            f"Found and processed {expired_count} expired item(s)."
+        )
+    else:
+        messages.info(
+            request,
+            "No new expired items found. Your pantry is up to date!"
+        )
+    
+    # Get all waste records (including newly created ones)
     waste_records = FoodWasteRecord.objects.filter(user=user)
     
     # Calculate statistics
     total_wasted_cost = waste_records.aggregate(Sum('cost'))['cost__sum'] or Decimal('0.00')
     total_wasted_qty = waste_records.aggregate(Sum('quantity_wasted'))['quantity_wasted__sum'] or 0
     
-    # Get waste by reason
+    # Get waste by reason breakdown
     waste_by_reason = (
         waste_records.values('reason')
         .annotate(
@@ -1158,21 +1150,49 @@ def food_waste_analytics_view(request):
         .order_by('-total_cost')
     )
     
-    # Get items expiring soon (next 3 days)
-    expiring_soon = UserPantry.objects.filter(
-        user=user,
-        status='active',
-        expiry_date__gte=today,
-        expiry_date__lte=today + timezone.timedelta(days=3)
-    ).order_by('expiry_date')
+    # PHASE 7: Get items expiring soon using signal function
+    expiring_soon = get_expiring_soon_items(user, days=3)
+    
+    # Get recently expired records for display
+    recently_expired_records = waste_records.filter(
+        reason='expired',
+        waste_date__gte=today - timezone.timedelta(days=30)
+    ).order_by('-waste_date')[:10]
+    
+    # Calculate waste trends
+    active_items_count = UserPantry.objects.filter(user=user, status='active').count()
+    expired_items_count = UserPantry.objects.filter(user=user, status='expired').count()
+    
+    # Calculate waste percentage
+    total_items_ever = active_items_count + expired_items_count
+    waste_percentage = 0
+    if total_items_ever > 0:
+        waste_percentage = (expired_items_count / total_items_ever) * 100
     
     context = {
+        # Detection results
+        "expired_count": expired_count,
+        "other_waste_count": other_waste_count,
+        
+        # Waste statistics
         "total_wasted_cost": total_wasted_cost,
         "total_wasted_qty": total_wasted_qty,
+        "waste_percentage": round(waste_percentage, 1),
+        
+        # Waste records
         "waste_records": waste_records.order_by('-waste_date'),
         "waste_by_reason": waste_by_reason,
+        "recently_expired_records": recently_expired_records,
+        
+        # Expiry warnings
         "expiring_soon": expiring_soon,
-        "expired_count": expired_count,
+        "expiring_soon_count": expiring_soon.count(),
+        
+        # Pantry status
+        "active_items_count": active_items_count,
+        "expired_items_count": expired_items_count,
+        
+        # Dates
         "today": today,
     }
     
