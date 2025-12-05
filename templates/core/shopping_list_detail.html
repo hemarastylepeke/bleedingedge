@@ -5,6 +5,112 @@
 <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
   <h1 class="text-2xl font-bold text-gray-800 mb-6">{{ shopping_list.name }}</h1>
 
+  <!-- AI Generated Empty List Warning -->
+  {% if is_ai_generated_empty %}
+  <div class="mb-6">
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+      <div class="flex items-start">
+        <div class="flex-shrink-0">
+          <i class="fas fa-exclamation-triangle text-yellow-400 text-xl mt-1"></i>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-lg font-medium text-yellow-800">AI Shopping List is Empty</h3>
+          <div class="mt-2 text-yellow-700">
+            <p class="mb-3">The AI couldn't generate shopping suggestions. Make sure you have:</p>
+            <ul class="list-disc pl-5 space-y-2">
+              <li class="flex items-center">
+                <strong class="mr-2">Pantry items:</strong>
+                {% if has_pantry_items %}
+                <span class="text-green-600 ml-2">You have pantry items</span>
+                {% else %}
+                <span class="text-red-600 ml-2">Add items to your pantry first</span>
+                <a href="{% url 'pantry_list' %}" class="ml-2 text-blue-600 hover:text-blue-800 text-sm">
+                  (Go to Pantry)
+                </a>
+                {% endif %}
+              </li>
+              
+              <li class="flex items-center">
+                <strong class="mr-2">Recipes:</strong>
+                {% if has_recipes %}
+                <span class="text-green-600 ml-2">You have recipes</span>
+                {% else %}
+                <span class="text-red-600 ml-2">Create or import recipes</span>
+                <a href="{% url 'recipe_list' %}" class="ml-2 text-blue-600 hover:text-blue-800 text-sm">
+                  (Go to Recipes)
+                </a>
+                {% endif %}
+              </li>
+              
+              <li class="flex items-center">
+                <strong class="mr-2">Active budget:</strong>
+                {% if has_budget %}
+                <span class="text-green-600 ml-2">Budget is set</span>
+                {% else %}
+                <span class="text-red-600 ml-2">Set up your budget</span>
+                <a href="{% url 'create_budget' %}" class="ml-2 text-blue-600 hover:text-blue-800 text-sm">
+                  (Set Budget)
+                </a>
+                {% endif %}
+              </li>
+              
+              <li class="flex items-center">
+                <strong class="mr-2">User profile:</strong>
+                {% if has_user_profile %}
+                <span class="text-green-600 ml-2">Profile complete</span>
+                {% else %}
+                <span class="text-red-600 ml-2">Complete your profile</span>
+                <a href="{% url 'edit_profile' %}" class="ml-2 text-blue-600 hover:text-blue-800 text-sm">
+                  (Edit Profile)
+                </a>
+                {% endif %}
+              </li>
+              
+              <li class="flex items-center">
+                <strong class="mr-2">Health goals:</strong>
+                {% if has_user_goal %}
+                <span class="text-green-600 ml-2">Goals set</span>
+                {% else %}
+                <span class="text-red-600 ml-2">Set your health/fitness goals</span>
+                <a href="{% url 'user_goals' %}" class="ml-2 text-blue-600 hover:text-blue-800 text-sm">
+                  (Set Goals)
+                </a>
+                {% endif %}
+              </li>
+            </ul>
+            
+            <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <p class="text-blue-800 font-medium mb-2">How AI Shopping Lists Work:</p>
+              <ul class="text-sm text-blue-700 space-y-1">
+                <li>AI analyzes your pantry to avoid suggesting items you already have</li>
+                <li>Checks recipes for missing ingredients</li>
+                <li>Considers your budget, dietary preferences, and health goals</li>
+                <li>Suggests items to help use expiring ingredients</li>
+                <li>You can still add custom items manually below</li>
+              </ul>
+            </div>
+            
+            <div class="mt-4 flex flex-wrap gap-3">
+              <a href="{% url 'pantry_list' %}" 
+                 class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
+                <i class="fas fa-utensils mr-2"></i> Go to Pantry
+              </a>
+              <a href="{% url 'recipe_list' %}" 
+                 class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-book mr-2"></i> Go to Recipes
+              </a>
+              <a href="{% url 'create_budget' %}" 
+                 class="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">
+                <i class="fas fa-wallet mr-2"></i> Set Budget
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Main Form for Confirming Purchases -->
   <form method="post" id="confirmForm" enctype="multipart/form-data">
     {% csrf_token %}
@@ -363,12 +469,12 @@
       <div>
         <h4 class="font-medium text-blue-800">Shopping Tips</h4>
         <ul class="text-sm text-blue-600 mt-1 space-y-1">
-          <li>• Add expiry dates for better food waste tracking</li>
-          <li>• Update actual prices for accurate budget tracking</li>
-          <li>• Adjust quantities if you purchased different amounts</li>
-          <li>• Mark items as purchased to track your progress</li>
-          <li>• Add custom items you need that weren't suggested by AI</li>
-          <li>• Use "Add & Add Another" to quickly add multiple items</li>
+          <li>Add expiry dates for better food waste tracking</li>
+          <li>Update actual prices for accurate budget tracking</li>
+          <li>Adjust quantities if you purchased different amounts</li>
+          <li>Mark items as purchased to track your progress</li>
+          <li>Add custom items you need that weren't suggested by AI</li>
+          <li>Use "Add & Add Another" to quickly add multiple items</li>
         </ul>
       </div>
     </div>

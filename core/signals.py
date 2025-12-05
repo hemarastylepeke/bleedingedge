@@ -1,4 +1,4 @@
-# core/signals.py - UPDATED VERSION
+# core/signals.py
 from django.db import transaction
 from django.utils import timezone
 from decimal import Decimal
@@ -9,7 +9,7 @@ from .models import UserPantry, FoodWasteRecord
 def detect_and_process_all_expired_items(user):
     """
     Detects ALL expired items by comparing today's date with expiry_date
-    Uses the existing mark_as_expired() method from UserPantry model
+    Creates waste records directly (since model no longer does this)
     """
     today = timezone.now().date()
     newly_expired_count = 0
@@ -22,32 +22,45 @@ def detect_and_process_all_expired_items(user):
         quantity__gt=0
     )
     
-    # Process each expired item using the existing model method
+    # Process each expired item
     for item in expired_items:
         try:
-            
-            if item.mark_as_expired():
+            with transaction.atomic():
+                # Save the original quantity
+                original_quantity = item.quantity
+                
+                # Check if waste record already exists for TODAY
+                existing_waste_record = FoodWasteRecord.objects.filter(
+                    pantry_item=item,
+                    reason='expired',
+                    waste_date=today
+                ).exists()
+                
+                # Only create waste record if it doesn't exist
+                if not existing_waste_record:
+                    # Create the waste record
+                    FoodWasteRecord.objects.create(
+                        user=user,
+                        pantry_item=item,
+                        original_quantity=original_quantity,
+                        quantity_wasted=original_quantity,
+                        unit=item.unit,
+                        cost=item.price or Decimal('0.00'),
+                        reason='expired',
+                        reason_details=f"Item expired on {item.expiry_date}",
+                        purchase_date=item.purchase_date,
+                        expiry_date=item.expiry_date,
+                        waste_date=today
+                    )
+                
+                # Mark the pantry item as expired using model method
+                # This will update the status and quantity
+                item.mark_as_expired()
+                
                 newly_expired_count += 1
                 
         except Exception as e:
-            # Log error but continue with other items
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Error processing expired item {item.id} ({item.name}): {e}")
+            print(f"Error processing expired item {item.id} ({item.name}): {e}")
             continue
     
     return newly_expired_count
-
-def get_expiring_soon_items(user, days=3):
-    """
-    Get items that will expire within the next X days
-    """
-    today = timezone.now().date()
-    
-    return UserPantry.objects.filter(
-        user=user,
-        status='active',
-        expiry_date__gte=today,  # Not expired yet
-        expiry_date__lte=today + timezone.timedelta(days=days),
-        quantity__gt=0
-    ).order_by('expiry_date')

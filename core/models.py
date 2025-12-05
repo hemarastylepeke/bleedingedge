@@ -97,7 +97,7 @@ class UserPantry(models.Model):
         return f"{self.user.email} - {self.name} ({self.quantity}{self.unit})"
     
     def save(self, *args, **kwargs):
-        """Override save to check expiration before saving - PREVENTS REDUNDANCY"""
+        """Override save to check expiration before saving"""
         # If already expired, just save normally
         if self.status == 'expired':
             super().save(*args, **kwargs)
@@ -111,40 +111,9 @@ class UserPantry(models.Model):
             
             # Save with expired status
             super().save(*args, **kwargs)
-            
-            # Check if waste record already exists before creating new one
-            self._create_expired_waste_record_if_needed()
+           
         else:
             super().save(*args, **kwargs)
-    
-    def _create_expired_waste_record_if_needed(self):
-        """Create waste record for expired item ONLY if it doesn't exist"""
-        # Import here to avoid circular import
-        from .models import FoodWasteRecord
-        
-        # Check if waste record already exists for this item TODAY
-        today = timezone.now().date()
-        existing_record = FoodWasteRecord.objects.filter(
-            pantry_item=self,
-            reason='expired',
-            waste_date=today
-        ).exists()
-        
-        # Only create if it doesn't exist
-        if not existing_record:
-            FoodWasteRecord.objects.create(
-                user=self.user,
-                pantry_item=self,
-                original_quantity=self.quantity,
-                quantity_wasted=self.quantity,
-                unit=self.unit,
-                cost=self.price or Decimal('0.00'),
-                reason='expired',
-                reason_details=f"Item expired on {self.expiry_date}",
-                purchase_date=self.purchase_date,
-                expiry_date=self.expiry_date,
-                waste_date=today
-            )
     
     def get_nutritional_info(self):
         """Get formatted nutritional information"""
@@ -217,7 +186,8 @@ class UserPantry(models.Model):
     
     def mark_as_expired(self):
         """
-        Mark item as expired and create waste record.
+        Mark item as expired.
+        NOTE: This only marks as expired - waste record creation is handled by signal
         """
         # If already expired, do nothing
         if self.status == 'expired':
