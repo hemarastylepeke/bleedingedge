@@ -97,23 +97,9 @@ class UserPantry(models.Model):
         return f"{self.user.email} - {self.name} ({self.quantity}{self.unit})"
     
     def save(self, *args, **kwargs):
-        """Override save to check expiration before saving"""
-        # If already expired, just save normally
-        if self.status == 'expired':
-            super().save(*args, **kwargs)
-            return
-            
-        # Check if item is active and has expired
-        if self.status == 'active' and self.expiry_date < timezone.now().date():
-            # Mark as expired
-            self.status = 'expired'
-            self.quantity = 0
-            
-            # Save with expired status
-            super().save(*args, **kwargs)
-           
-        else:
-            super().save(*args, **kwargs)
+        """Override save to prevent automatic expiration handling"""
+        # Just save normally - expiration is handled by signals
+        super().save(*args, **kwargs)
     
     def get_nutritional_info(self):
         """Get formatted nutritional information"""
